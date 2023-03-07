@@ -14,15 +14,20 @@ const bot = mineflayer.createBot({
 
 bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
-import { BotStateMachine, StateMachineWebserver, buildTransition, buildTransitionArgs, buildNestedMachine, newNestedStateMachine } from "../../src";
+import {
+  BotStateMachine,
+  StateMachineWebserver,
+  buildTransition,
+  buildTransitionArgs,
+  buildNestedMachine,
+} from "@nxg-org/mineflayer-statemachine";
 
 import {
   BehaviorIdle,
   BehaviorFindEntity,
   BehaviorFollowEntity,
   BehaviorLookAtEntity,
-} from "../../lib/behaviors";
-
+} from "@nxg-org/mineflayer-statemachine/src/behaviors";
 
 // to replicate the original mineflayer-statemachine exactly:
 const BehaviorLookAtPlayers = BehaviorLookAtEntity.clone("LookAtPlayers");
@@ -62,7 +67,7 @@ const transitions = [
 const root = buildNestedMachine("root", transitions, BehaviorIdle);
 
 const stateMachine = new BotStateMachine({ bot, root, autoStart: false });
-const webserver = new StateMachineWebserver({stateMachine});
+const webserver = new StateMachineWebserver({ stateMachine });
 webserver.startServer();
 
 bot.once("spawn", () => {

@@ -1,13 +1,13 @@
 import EventEmitter from 'events'
 import { Bot } from 'mineflayer'
 import StrictEventEmitter from 'strict-event-emitter-types/types/src'
-import { StateBehavior, StateTransition, StateMachineData } from './stateBehavior'
+import { StateTransition, StateMachineData } from './stateBehavior'
 import { NestedStateMachine } from './stateMachineNested'
 import { isNestedStateMachine, SpecifcNestedStateMachine, StateBehaviorBuilder } from './util'
 
 export interface BotStateMachineEvents {
-  stateEntered: (type: typeof NestedStateMachine, cls: NestedStateMachine, newState: typeof StateBehavior) => void
-  stateExited: (type: typeof NestedStateMachine, cls: NestedStateMachine, oldState: typeof StateBehavior) => void
+  stateEntered: (type: typeof NestedStateMachine, cls: NestedStateMachine, newState: StateBehaviorBuilder) => void
+  stateExited: (type: typeof NestedStateMachine, cls: NestedStateMachine, oldState: StateBehaviorBuilder) => void
 }
 
 export interface BotStateMachineOptions<Enter extends StateBehaviorBuilder, Exit extends StateBehaviorBuilder> {
@@ -26,7 +26,7 @@ export class BotStateMachine<
   readonly rootType: SpecifcNestedStateMachine<Enter, Exit>
   readonly root: InstanceType<SpecifcNestedStateMachine<Enter, Exit>>
   readonly transitions: StateTransition[]
-  readonly states: Array<typeof StateBehavior>
+  readonly states: Array<StateBehaviorBuilder>
   readonly nestedMachinesNew: { [depth: number]: Array<typeof NestedStateMachine> }
   readonly nestedMachinesHelp: Array<typeof NestedStateMachine>
 

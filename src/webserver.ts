@@ -3,7 +3,7 @@ import socketLoader, { Socket } from 'socket.io'
 import path from 'path'
 import express from 'express'
 import httpLoader from 'http'
-import { isNestedStateMachine, WebserverBehaviorPositionIterable } from './util'
+import { isNestedStateMachine, StateBehaviorBuilder, WebserverBehaviorPositionIterable } from './util'
 
 const publicFolder = './../web'
 
@@ -18,12 +18,12 @@ export class WebserverBehaviorPositions {
     }
   }
 
-  private getName (state: typeof StateBehavior, parentMachine?: typeof NestedStateMachine): string {
+  private getName (state: StateBehaviorBuilder, parentMachine?: typeof NestedStateMachine): string {
     if (parentMachine != null) return parentMachine.name + parentMachine.stateName + state.name + state.stateName
     return state.name + state.stateName
   }
 
-  public has (state: typeof StateBehavior, parentMachine?: typeof NestedStateMachine): boolean {
+  public has (state: StateBehaviorBuilder, parentMachine?: typeof NestedStateMachine): boolean {
     if (parentMachine != null) {
       const flag = !(this.storage[parentMachine.name + parentMachine.stateName + state.name + state.stateName] == null)
       if (!flag) return !(this.storage[state.name + state.stateName] == null)
@@ -33,7 +33,7 @@ export class WebserverBehaviorPositions {
   }
 
   public get (
-    state: typeof StateBehavior,
+    state: StateBehaviorBuilder,
     parentMachine?: typeof NestedStateMachine
   ): { x: number | undefined, y: number | undefined } {
     if (!this.has(state, parentMachine)) return { x: undefined, y: undefined }
@@ -47,14 +47,14 @@ export class WebserverBehaviorPositions {
     }
   }
 
-  public set (state: typeof StateBehavior, x: number, y: number, parentMachine?: typeof NestedStateMachine): this {
+  public set (state: StateBehaviorBuilder, x: number, y: number, parentMachine?: typeof NestedStateMachine): this {
     if (this.has(state, parentMachine)) throw Error('State has already been added!')
     const key = this.getName(state, parentMachine)
     this.storage[key] = { x, y }
     return this
   }
 
-  public removeState (state: typeof StateBehavior, parentMachine?: typeof NestedStateMachine): this {
+  public removeState (state: StateBehaviorBuilder, parentMachine?: typeof NestedStateMachine): this {
     const key = this.getName(state, parentMachine)
     this.storage[key] = undefined
     return this
@@ -78,7 +78,7 @@ export class StateMachineWebserver {
   readonly port: number
 
   private lastMachine: typeof NestedStateMachine | undefined
-  private lastState: typeof StateBehavior | undefined
+  private lastState: StateBehaviorBuilder | undefined
 
   /**
    * Creates and starts a new webserver.
@@ -152,7 +152,7 @@ export class StateMachineWebserver {
     const updateClient = (
       type: typeof NestedStateMachine,
       nestedMachine: NestedStateMachine,
-      state: typeof StateBehavior
+      state: StateBehaviorBuilder
     ): void => this.updateClient(socket, type, state)
     this.stateMachine.on('stateEntered', updateClient)
     this.stateMachine.on('stateExited', updateClient)
@@ -179,7 +179,7 @@ export class StateMachineWebserver {
     socket.emit('connected', packet)
   }
 
-  private updateClient (socket: Socket, nested: typeof NestedStateMachine, state: typeof StateBehavior): void {
+  private updateClient (socket: Socket, nested: typeof NestedStateMachine, state: StateBehaviorBuilder): void {
     const activeStates: number[] = []
 
     const index = this.getStateId(state, nested)
@@ -211,7 +211,7 @@ export class StateMachineWebserver {
    * @returns id of state.
    */
   private getStateId (
-    state: typeof StateBehavior,
+    state: StateBehaviorBuilder,
     targetMachine: typeof NestedStateMachine,
     searching: typeof NestedStateMachine = this.stateMachine.rootType,
     data = { offset: 0 }

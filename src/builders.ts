@@ -1,4 +1,4 @@
-import { StateBehavior, StateTransition } from './stateBehavior'
+import { StateTransition } from './stateBehavior'
 import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNested'
 import { clone, HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
@@ -63,7 +63,7 @@ function internalBuildNested<Enter extends StateBehaviorBuilder, Exit extends St
   exit?: Exit,
   enterIntermediateStates = true
 ): SpecifcNestedStateMachine<Enter, Exit> {
-  const states: Array<typeof StateBehavior> = []
+  const states: Array<StateBehaviorBuilder> = []
 
   states.push(enter)
 

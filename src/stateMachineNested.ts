@@ -14,8 +14,8 @@ export interface NestedStateMachineOptions<Enter extends StateBehaviorBuilder, E
 }
 
 export interface NestedMachineEvents {
-  stateEntered: (cls: NestedStateMachine, newBehavior: typeof StateBehavior, data: StateMachineData) => void
-  stateExited: (cls: NestedStateMachine, oldBehavior: typeof StateBehavior, data: StateMachineData) => void
+  stateEntered: (cls: NestedStateMachine, newBehavior: StateBehaviorBuilder, data: StateMachineData) => void
+  stateExited: (cls: NestedStateMachine, oldBehavior: StateBehaviorBuilder, data: StateMachineData) => void
 }
 
 export class NestedStateMachine
@@ -23,10 +23,10 @@ export class NestedStateMachine
   implements StateBehavior {
   public static readonly stateName: string = this.name
   public static readonly transitions: StateTransition[]
-  public static readonly states: Array<typeof StateBehavior>
-  public static readonly enter: typeof StateBehavior
+  public static readonly states: Array<StateBehaviorBuilder>
+  public static readonly enter: StateBehaviorBuilder
   public static readonly enterArgs: any[] | undefined = undefined // StateConstructorArgs<typeof this.enter>; // sadly, this is always undefined (no static generics).
-  public static readonly exit?: typeof StateBehavior
+  public static readonly exit?: StateBehaviorBuilder
   public static readonly enterIntermediateStates: boolean
 
   public static readonly clone = clone
@@ -36,7 +36,7 @@ export class NestedStateMachine
   [key: keyof NestedMachineEvents, listener: NestedMachineEvents[keyof NestedMachineEvents]]
   >
 
-  protected _activeStateType?: typeof StateBehavior
+  protected _activeStateType?: StateBehaviorBuilder
   protected _activeState?: StateBehavior
 
   public readonly bot: Bot
@@ -68,7 +68,7 @@ export class NestedStateMachine
   /**
    * Getter
    */
-  public get activeStateType (): typeof StateBehavior | undefined {
+  public get activeStateType (): StateBehaviorBuilder | undefined {
     return this._activeStateType
   }
 
@@ -89,7 +89,7 @@ export class NestedStateMachine
   /**
    * Getter
    */
-  public get states (): Array<typeof StateBehavior> {
+  public get states (): Array<StateBehaviorBuilder> {
     return (this.constructor as typeof NestedStateMachine).states
   }
 
