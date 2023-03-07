@@ -17,7 +17,10 @@ bot.loadPlugin(require('mineflayer-pathfinder').pathfinder)
 const {
   BotStateMachine,
   StateMachineWebserver,
-  WebserverBehaviorPositions
+  WebserverBehaviorPositions,
+  buildTransition,
+  buildTransitionArgs,
+  buildNestedMachine,
 } = require('@nxg-org/mineflayer-statemachine')
 
 const {
@@ -25,13 +28,8 @@ const {
   BehaviorFindEntity,
   BehaviorFollowEntity,
   BehaviorLookAtEntity
-} = require('mineflayer-statemachine/lib/behaviors')
+} = require('@nxg-org/mineflayer-statemachine/lib/behaviors')
 
-const {
-  buildTransition,
-  buildTransitionArgs,
-  buildNestedMachine,
-} = require('mineflayer-statemachine/lib/builders')
 
 
 // to replicate the original mineflayer-statemachine exactly:
@@ -81,7 +79,7 @@ behaviorPositions
   .set(BehaviorFindEntity, 700, 100)
   .set(BehaviorLookAtFollowing, 700, 400)
 
-const webserver = new StateMachineWebserver({stateMachine, behaviorPositions})
+const webserver = new StateMachineWebserver({stateMachine, presetPositions: behaviorPositions})
 webserver.startServer()
 
 bot.once("spawn", () => {
