@@ -1,40 +1,32 @@
-const mineflayer = require('mineflayer')
+import mineflayer from "mineflayer";
 
 if (process.argv.length < 4 || process.argv.length > 6) {
-  console.log('Usage : node webserver.js <host> <port> [<name>] [<password>]')
-  process.exit(1)
+  console.log("Usage : node webserver.js <host> <port> [<name>] [<password>]");
+  process.exit(1);
 }
 
 const bot = mineflayer.createBot({
   host: process.argv[2],
   port: parseInt(process.argv[3]),
-  username: process.argv[4] ? process.argv[4] : 'statemachine_bot',
-  password: process.argv[5]
-})
+  username: process.argv[4] ? process.argv[4] : "statemachine_bot",
+  password: process.argv[5],
+});
 
-bot.loadPlugin(require('mineflayer-pathfinder').pathfinder)
+bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
-const {
-  BotStateMachine,
-  StateMachineWebserver,
-} = require('../lib')
+import { BotStateMachine, StateMachineWebserver, buildTransition, buildTransitionArgs, buildNestedMachine, newNestedStateMachine } from "../../src";
 
-const {
+import {
   BehaviorIdle,
   BehaviorFindEntity,
   BehaviorFollowEntity,
-  BehaviorLookAtEntity
-} = require('../lib/behaviors')
+  BehaviorLookAtEntity,
+} from "../../lib/behaviors";
 
-const {
-  buildTransition,
-  buildTransitionArgs,
-  buildNestedMachine,
-} = require('../lib/builders')
 
 // to replicate the original mineflayer-statemachine exactly:
-const BehaviorLookAtPlayers = BehaviorLookAtEntity.clone("LookAtPlayers")
-const BehaviorLookAtFollowing = BehaviorLookAtEntity.clone("LookAtFollowing")
+const BehaviorLookAtPlayers = BehaviorLookAtEntity.clone("LookAtPlayers");
+const BehaviorLookAtFollowing = BehaviorLookAtEntity.clone("LookAtFollowing");
 
 const transitions = [
   buildTransitionArgs('player says "hi"', BehaviorIdle, BehaviorFindEntity, [(e) => e.type === "player"]) // 1
@@ -67,29 +59,33 @@ const transitions = [
   buildTransition('player says "stay"', BehaviorLookAtFollowing, BehaviorLookAtPlayers), // 10
 ];
 
-const root = buildNestedMachine('root', transitions, BehaviorIdle)
+const root = buildNestedMachine("root", transitions, BehaviorIdle);
 
-const stateMachine = new BotStateMachine({bot, root, autoStart: false})
-const webserver = new StateMachineWebserver({stateMachine})
-webserver.startServer()
+const stateMachine = new BotStateMachine({ bot, root, autoStart: false });
+const webserver = new StateMachineWebserver({stateMachine});
+webserver.startServer();
 
 bot.once("spawn", () => {
-    stateMachine.start()
+  stateMachine.start();
 
-    bot.on('chat', (username, message) => {
-        if (message === 'hi') { transitions[0].trigger() }
-    
-        if (message === 'bye') {
-          transitions[2].trigger()
-          transitions[5].trigger()
-          transitions[8].trigger()
-        }
-    
-        if (message === 'come') { transitions[3].trigger() }
-    
-        if (message === 'stay') {
-          transitions[4].trigger()
-          transitions[9].trigger()
-        }
-      })   
-})
+  bot.on("chat", (username, message) => {
+    if (message === "hi") {
+      transitions[0].trigger();
+    }
+
+    if (message === "bye") {
+      transitions[2].trigger();
+      transitions[5].trigger();
+      transitions[8].trigger();
+    }
+
+    if (message === "come") {
+      transitions[3].trigger();
+    }
+
+    if (message === "stay") {
+      transitions[4].trigger();
+      transitions[9].trigger();
+    }
+  });
+});
