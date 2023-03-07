@@ -48,7 +48,7 @@ export class BotStateMachine<
     this.nestedMachinesHelp = []
     this.findStatesRecursive(Root)
     this.findTransitionsRecursive(Root)
-    this.findNestedStateMachinesNew(Root)
+    this.findNestedStateMachines(Root)
     this.rootType = Root
     this.root = new Root(bot, data)
     this.autoUpdate = autoUpdate
@@ -81,21 +81,7 @@ export class BotStateMachine<
     return -1
   }
 
-  // private findNestedStateMachines(nested: NestedStateMachine, depth: number = 0): void {
-  //   this.nestedMachines.push(nested);
-  //   nested.depth = depth;
-
-  //   nested.on("stateEntered", (state) => this.emit("stateEntered", nested, state));
-  //   nested.on("stateExited", (state) => this.emit("stateExited", nested, state));
-
-  //   for (const state of nested.staticRef.states) {
-  //     if (state instanceof NestedStateMachine) {
-  //       this.findNestedStateMachines(state, depth + 1);
-  //     }
-  //   }
-  // }
-
-  private findNestedStateMachinesNew (nested: typeof NestedStateMachine, depth: number = 0): void {
+  private findNestedStateMachines (nested: typeof NestedStateMachine, depth: number = 0): void {
     this.nestedMachinesHelp.push(nested)
     this.nestedMachinesNew[depth] ||= []
     this.nestedMachinesNew[depth].push(nested)
@@ -105,7 +91,7 @@ export class BotStateMachine<
 
     for (const state of nested.states) {
       if (isNestedStateMachine(state)) {
-        this.findNestedStateMachinesNew(state, depth + 1)
+        this.findNestedStateMachines(state, depth + 1)
       }
     }
   }

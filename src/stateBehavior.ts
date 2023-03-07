@@ -2,7 +2,7 @@ import type { Bot, Player } from 'mineflayer'
 import type { Entity } from 'prismarine-entity'
 import type { Item } from 'prismarine-item'
 import type { Vec3 } from 'vec3'
-import { clone, HasArgs, StateBehaviorBuilder, StateConstructorArgs } from './util'
+import { clone, HasArgs, StateBehaviorBuilder, StateConstructorArgs, transform } from './util'
 
 /**
  * A collection of targets which the bot is currently
@@ -32,6 +32,9 @@ export class StateBehavior {
    * Method to clone the behavior, see util.ts
    */
   static clone = clone
+
+  static transform = transform;
+
   /**
    * Bot the state is related to.
    */

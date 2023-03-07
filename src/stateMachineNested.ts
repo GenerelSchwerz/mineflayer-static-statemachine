@@ -2,7 +2,7 @@ import EventEmitter from 'events'
 import { Bot } from 'mineflayer'
 import { StrictEventEmitter } from 'strict-event-emitter-types'
 import { StateBehavior, StateTransition, StateMachineData } from './stateBehavior'
-import { clone, HasArgs, StateBehaviorBuilder, StateConstructorArgs } from './util'
+import { clone, HasArgs, StateBehaviorBuilder, StateConstructorArgs, transform } from './util'
 
 export interface NestedStateMachineOptions<Enter extends StateBehaviorBuilder, Exit extends StateBehaviorBuilder> {
   stateName: string
@@ -30,6 +30,8 @@ export class NestedStateMachine
   public static readonly enterIntermediateStates: boolean
 
   public static readonly clone = clone
+
+  public static readonly transform = transform;
 
   // not correct but whatever.
   public static readonly onStartupListeners: Array<

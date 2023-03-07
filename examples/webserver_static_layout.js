@@ -31,45 +31,43 @@ const {
 } = require('@nxg-org/mineflayer-statemachine/lib/behaviors')
 
 
-
 // to replicate the original mineflayer-statemachine exactly:
 const LookAtPlayers = LookAtTarget.clone("LookAtPlayers")
 const LookAtFollowing = LookAtTarget.clone("LookAtFollowing")
 
 const transitions = [
-  buildTransitionArgs('player says "hi"', Idle, FindEntity, [(e) => e.type === "player"]) // 1
+  buildTransitionArgs('player says "hi"', Idle, FindEntity, [(e) => e.type === "player"])
     .setOnTransition(() => bot.chat("hello")),
 
-  buildTransition("closestToLook", FindEntity, LookAtPlayers) // 2
+  buildTransition("closestToLook", FindEntity, LookAtPlayers) 
     .setShouldTransition(() => true),
 
-  buildTransition('player says "bye"', LookAtPlayers, Idle) // 3
+  buildTransition('player says "bye"', LookAtPlayers, Idle)
     .setOnTransition(() => bot.chat("goodbye")),
 
-  buildTransition('player says "come"', LookAtPlayers, FollowTarget) // 4
+  buildTransition('player says "come"', LookAtPlayers, FollowTarget) 
     .setOnTransition(() => bot.chat("coming")),
 
-  buildTransition('player says "stay"', FollowTarget, LookAtPlayers) // 5
+  buildTransition('player says "stay"', FollowTarget, LookAtPlayers) 
     .setOnTransition(() => bot.chat("stay")),
 
-  buildTransition('player says "bye"', FollowTarget, Idle) // 6
+  buildTransition('player says "bye"', FollowTarget, Idle) 
     .setOnTransition(() => bot.chat("goodbye")),
 
-  buildTransition("closeToTarget", FollowTarget, LookAtFollowing) // 7
+  buildTransition("closeToTarget", FollowTarget, LookAtFollowing) 
     .setShouldTransition((state) => state.distanceToTarget() < 3),
 
-  buildTransition("farFromTarget", LookAtFollowing, FollowTarget) // 8
+  buildTransition("farFromTarget", LookAtFollowing, FollowTarget) 
     .setShouldTransition((state) => state.distanceToTarget() >= 3),
 
-  buildTransition('player says "bye"', LookAtFollowing, Idle) // 9
+  buildTransition('player says "bye"', LookAtFollowing, Idle) 
     .setOnTransition(() => bot.chat("goodbye")),
 
-  buildTransition('player says "stay"', LookAtFollowing, LookAtPlayers), // 10
+  buildTransition('player says "stay"', LookAtFollowing, LookAtPlayers),
 ];
 
 const root = buildNestedMachine('root', transitions, Idle)
 const stateMachine = new BotStateMachine({bot, root, autoStart: false})
-
 
 const behaviorPositions = new WebserverBehaviorPositions();
 behaviorPositions
