@@ -18,7 +18,7 @@ const {
   BotStateMachine,
   StateMachineWebserver,
   WebserverBehaviorPositions
-} = require('mineflayer-statemachine')
+} = require('@nxg-org/mineflayer-statemachine')
 
 const {
   BehaviorIdle,

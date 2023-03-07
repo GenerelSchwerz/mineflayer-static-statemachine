@@ -48,7 +48,7 @@ const bot = mineflayer.createBot({ username: "Player" });
 bot.loadPlugin(require('mineflayer-pathfinder').pathfinder);
 
 // Import required structures.
-const { BotStateMachine, buildTransition, buildNestedMachineArgs } = require('mineflayer-statemachine') 
+const { BotStateMachine, buildTransition, buildNestedMachineArgs } = require('@nxg-org/mineflayer-statemachine') 
 
 // Import required behaviors.
 // Note: Rename behaviors by import schema here.

@@ -1,13 +1,18 @@
 import mineflayer from "mineflayer";
-import { BotStateMachine, StateMachineWebserver } from "../../src";
+import {
+  BotStateMachine,
+  StateMachineWebserver,
+  buildTransition,
+  buildTransitionArgs,
+  newNestedStateMachineArgs,
+} from "@nxg-org/mineflayer-statemachine";
 import {
   BehaviorExit,
   BehaviorFollowEntity,
   BehaviorIdle,
   BehaviorLookAtEntity,
   BehaviorFindEntity,
-} from "../../src/behaviors";
-import { buildTransition, buildTransitionArgs, newNestedStateMachineArgs } from "../../src/builders";
+} from "@nxg-org/mineflayer-statemachine/src/behaviors";
 
 /**
  * Set up your bot as you normally would
@@ -30,13 +35,12 @@ bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 const playerFilter = (e) => e.type === "player";
 const isFinished = (state) => state.isFinished();
 
-
 const findAndFollowTransitions = [
-  buildTransition("findToFollow", BehaviorFindEntity, BehaviorFollowEntity).setShouldTransition((state) =>
-    state.foundEntity()
-  ),
+  buildTransition("findToFollow", BehaviorFindEntity, BehaviorFollowEntity)
+    .setShouldTransition((state) => state.foundEntity()),
 
-  buildTransition("followToExit", BehaviorFollowEntity, BehaviorExit).setShouldTransition(isFinished),
+  buildTransition("followToExit", BehaviorFollowEntity, BehaviorExit)
+    .setShouldTransition(isFinished),
 ];
 
 const FollowMachine = newNestedStateMachineArgs({
@@ -48,11 +52,13 @@ const FollowMachine = newNestedStateMachineArgs({
 });
 
 const secondTransitions = [
-  buildTransitionArgs("idleToFind", BehaviorIdle, BehaviorFindEntity, [playerFilter]).setShouldTransition(() => true),
+  buildTransitionArgs("idleToFind", BehaviorIdle, BehaviorFindEntity, [playerFilter])
+    .setShouldTransition(() => true),
   buildTransition("findToLook", BehaviorFindEntity, BehaviorLookAtEntity),
   buildTransition("lookToIdle", BehaviorLookAtEntity, BehaviorIdle),
   buildTransition("findToTest", BehaviorFindEntity, FollowMachine),
-  buildTransition("testToIdle", FollowMachine, BehaviorIdle).setShouldTransition(isFinished),
+  buildTransition("testToIdle", FollowMachine, BehaviorIdle)
+    .setShouldTransition(isFinished),
 ];
 
 const root = newNestedStateMachineArgs({
@@ -63,7 +69,7 @@ const root = newNestedStateMachineArgs({
 });
 
 const stateMachine = new BotStateMachine({ bot, root, autoStart: false });
-const webserver = new StateMachineWebserver({stateMachine});
+const webserver = new StateMachineWebserver({ stateMachine });
 webserver.startServer();
 
 // added functionality to delay starting machine until bot spawns.
@@ -79,19 +85,3 @@ const handle = (input) => {
 };
 
 bot.on("chat", (username, message) => handle(message));
-
-// (async () => {
-//   while (true) {
-//     const state = stateMachine.root.activeState;
-//     if (isNestedStateMachine(state.constructor)) {
-//       console.log("in nested:", { ...state.activeState, bot: {} }, state.activeStateType);
-//     } else {
-//       console.log("in root:", { ...state, bot: {} }, state.constructor);
-//     }
-
-//     await new Promise((res, rej) => setTimeout(res, 1000));
-//   }
-// })();
-
-// stateMachine.on("stateEntered", (nested,state) => console.log("ENTERED:", {...nested, data:{}, staticRef: undefined, bot: undefined, activeState: undefined}, state));
-// stateMachine.on("stateExited", (nested, state) => console.log("EXITED:", {...nested, data:{}, staticRef: undefined, bot: undefined, activeState: undefined}, state));

@@ -6,7 +6,7 @@ const bot = mineflayer.createBot({ username: "Player" });
 bot.loadPlugin(require('mineflayer-pathfinder').pathfinder);
 
 // Import required structures.
-import { BotStateMachine } from 'mineflayer-statemachine'
+import { BotStateMachine } from '@nxg-org/mineflayer-statemachine'
 
 // Import required behaviors.
 import {
@@ -14,13 +14,13 @@ import {
     BehaviorFindEntity,
     BehaviorFollowEntity,
     BehaviorLookAtEntity
-} from 'mineflayer-statemachine/lib/behaviors'
+} from '@nxg-org/mineflayer-statemachine/lib/behaviors'
 
 // import builders for transitions and machines.
 import {
     buildTransition,
     buildNestedMachineArgs
-} from 'mineflayer-statemachine/lib/builders'
+} from '@nxg-org/mineflayer-statemachine/lib/builders'
     
 
 // Util function to find the nearest player.
@@ -39,7 +39,6 @@ const transitions = [
     // Since BehaviorFindEntity finishes instantly, we will transition almost immediately.
     buildTransition('findToFollow', BehaviorFindEntity, BehaviorFollowEntity)
         .setShouldTransition(state => state.foundEntity()),
-    
 
     // If the distance to the player is less than two blocks, switch from the followPlayer
     // state to the lookAtPlayer state.
