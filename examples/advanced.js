@@ -24,16 +24,17 @@ const {
   buildNestedMachine,
   StateBehavior,
   StateMachineWebserver
-} = require("@nxg-org/mineflayer-statemachine");
+} = require("../lib");
 
 // Import required behaviors.
 const {
+  BehaviorWildcard: Wildcard,
   BehaviorIdle : Idle,
   BehaviorExit : Exit,
   BehaviorFindEntity : FindEntity,
   BehaviorLookAtEntity : LookAtTarget,
   BehaviorFollowEntity : FollowEntity,
-} = require("@nxg-org/mineflayer-statemachine/lib/behaviors")
+} = require("../lib/behaviors")
 
 // Have a class that requires arguments and you're too lazy to provide them every time?
 // No worries, now you can transform this class into a new one using these provided arguments!
@@ -60,7 +61,7 @@ const comeMachine = buildNestedMachine('comeToMe', comeToMeTransitions, FindPlay
 const followAndLookTransitions = [
 
   // manual wildcard!
-  buildTransition('wildcardExit', StateBehavior, Exit),
+  buildTransition('wildcardExit', Wildcard, Exit),
 
   buildTransition("findToExit", FindPlayer, Exit)
     .setShouldTransition(state => !state.foundEntity())
@@ -81,7 +82,7 @@ const followMachine = buildNestedMachine('followAndLook', followAndLookTransitio
 const rootTransitions = [
 
   // wildcard!
-  buildTransition('wildcardRevert', StateBehavior, Idle)
+  buildTransition('wildcardRevert', Wildcard, Idle)
     .setShouldTransition(state => state.isFinished()),
 
   buildTransition('come', Idle, comeMachine)

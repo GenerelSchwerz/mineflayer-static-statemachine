@@ -1,6 +1,7 @@
 export { BotStateMachine } from './stateMachineBot'
 export { NestedStateMachine } from './stateMachineNested'
-export { StateBehavior, StateTransition } from './stateBehavior'
+export { StateBehavior } from './stateBehavior'
+export { StateTransition } from './stateTransition'
 export { StateMachineWebserver, WebserverBehaviorPositions } from './webserver'
 
 export {
@@ -8,6 +9,4 @@ export {
   buildNestedMachineArgs,
   buildTransition,
   buildTransitionArgs,
-  newNestedStateMachine,
-  newNestedStateMachineArgs
 } from './builders'
