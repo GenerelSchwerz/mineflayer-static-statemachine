@@ -245,6 +245,7 @@ class State {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(this.name, this.rect.x + this.rect.w / 2, this.rect.y + this.rect.h / 2)
+    // `${this.name} ${this.rect.x.toFixed(0)} ${this.rect.y.toFixed(0)}`
   }
 
   drawActive (ctx) {
