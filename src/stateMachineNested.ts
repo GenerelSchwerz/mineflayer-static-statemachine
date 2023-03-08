@@ -23,7 +23,7 @@ export class NestedStateMachine
   implements StateBehavior {
   public static readonly stateName: string = this.name
   public static readonly transitions: StateTransition[]
-  public static readonly states: Array<StateBehaviorBuilder>
+  public static readonly states: StateBehaviorBuilder[]
   public static readonly enter: StateBehaviorBuilder
   public static readonly enterArgs: any[] | undefined = undefined // StateConstructorArgs<typeof this.enter>; // sadly, this is always undefined (no static generics).
   public static readonly exit?: StateBehaviorBuilder
@@ -31,7 +31,7 @@ export class NestedStateMachine
 
   public static readonly clone = clone
 
-  public static readonly transform = transform;
+  public static readonly transform = transform
 
   // not correct but whatever.
   public static readonly onStartupListeners: Array<
@@ -91,7 +91,7 @@ export class NestedStateMachine
   /**
    * Getter
    */
-  public get states (): Array<StateBehaviorBuilder> {
+  public get states (): StateBehaviorBuilder[] {
     return (this.constructor as typeof NestedStateMachine).states
   }
 

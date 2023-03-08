@@ -18,49 +18,53 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
 // Import required structures.
-import { BotStateMachine, buildTransition, buildNestedMachine } from "../../src";
+import { BotStateMachine, buildTransition, buildNestedMachine, StateBehavior } from "../../src";
 
 // Import required behaviors.
 import {
-  BehaviorExit,
-  BehaviorFindEntity,
+  BehaviorExit as Exit,
+  BehaviorFindEntity as FindTarget,
   BehaviorFollowEntity,
-  BehaviorLookAtEntity,
+  BehaviorLookAtEntity as LookAtTarget,
+  BehaviorFindEntity,
 } from "../../src/behaviors";
+import { Movements } from "mineflayer-pathfinder";
 
 // Util function to find the nearest player.
 const nearestPlayer = (e) => e.type === "player";
 
-const FindPlayer = BehaviorFindEntity.transform("FindPlayer", [e=>e.type === "player"])
+
+const FindPlayer = FindTarget.transform("FindPlayer", [e => e.type === "player"])
+const FollowTarget = BehaviorFollowEntity.transform("test", [{followDistance: 1}])
 
 const transitions = [
   // If we do not find an entity, we should exit this machine.
   // We will transition if we have not found an entity.
   // On our transition, say a message that other players can see.
-  buildTransition("findToFollow", FindPlayer, BehaviorExit)
+  buildTransition("findToFollow", FindPlayer, Exit)
     .setShouldTransition((state) => !state.foundEntity())
     .setOnTransition(() => bot.chat("Could not find entity!")),
 
   // We want to start following the player immediately after finding them.
   // Since BehaviorFindEntity finishes instantly, we will transition almost immediately.
-  buildTransition("findToFollow", FindPlayer, BehaviorFollowEntity)
+  buildTransition("findToFollow", FindPlayer, FollowTarget)
     .setShouldTransition((state) => state.foundEntity()),
 
   // If the distance to the player is less than two blocks, switch from the followPlayer
   // state to the lookAtPlayer state.
-  buildTransition("followToLook", BehaviorFollowEntity, BehaviorLookAtEntity)
+  buildTransition("followToLook", FollowTarget, LookAtTarget)
     .setShouldTransition((state) => state.distanceToTarget() < 2),
 
   // If the distance to the player is more than two blocks, switch from the lookAtPlayer
   // state to the followPlayer state.
-  buildTransition("lookToFollow", BehaviorLookAtEntity, BehaviorFollowEntity)
+  buildTransition("lookToFollow", LookAtTarget, FollowTarget)
     .setShouldTransition((state) => state.distanceToTarget() >= 2),
 ];
 
 // Now we just wrap our transition list in a nested state machine layer. We want the bot
 // to start on the getClosestPlayer state, so we'll specify that here.
 // We can specify entry arguments to our entry class here as well.
-const root = buildNestedMachine("rootLayer", transitions, FindPlayer, BehaviorExit);
+const root = buildNestedMachine("rootLayer", transitions, FindPlayer, Exit);
 
 // We can start our state machine simply by creating a new instance.
 // We can delay the start of our machine by using autoStart: false

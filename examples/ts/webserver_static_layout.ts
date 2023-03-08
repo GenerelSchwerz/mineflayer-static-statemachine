@@ -21,14 +21,14 @@ import {
     buildTransitionArgs,
     buildNestedMachine,
     WebserverBehaviorPositions
-} from "@nxg-org/mineflayer-statemachine";
+} from "../../src";
   
 import {
     BehaviorIdle as Idle,
     BehaviorFindEntity as FindEntity,
     BehaviorFollowEntity as FollowTarget,
     BehaviorLookAtEntity as LookAtTarget,
-} from "@nxg-org/mineflayer-statemachine/src/behaviors";
+} from "../../src/behaviors";
   
 // to replicate the original mineflayer-statemachine exactly:
 const LookAtPlayers = LookAtTarget.clone("LookAtPlayers")

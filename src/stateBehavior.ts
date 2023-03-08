@@ -33,7 +33,7 @@ export class StateBehavior {
    */
   static clone = clone
 
-  static transform = transform;
+  static transform = transform
 
   /**
    * Bot the state is related to.

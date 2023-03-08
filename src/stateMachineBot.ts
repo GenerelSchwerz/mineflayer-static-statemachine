@@ -26,7 +26,7 @@ export class BotStateMachine<
   readonly rootType: SpecifcNestedStateMachine<Enter, Exit>
   readonly root: InstanceType<SpecifcNestedStateMachine<Enter, Exit>>
   readonly transitions: StateTransition[]
-  readonly states: Array<StateBehaviorBuilder>
+  readonly states: StateBehaviorBuilder[]
   readonly nestedMachinesNew: { [depth: number]: Array<typeof NestedStateMachine> }
   readonly nestedMachinesHelp: Array<typeof NestedStateMachine>
 

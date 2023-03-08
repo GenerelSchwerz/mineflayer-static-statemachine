@@ -20,18 +20,19 @@ import {
   buildTransition,
   buildTransitionArgs,
   buildNestedMachine,
-} from "@nxg-org/mineflayer-statemachine";
+} from "../../src/";
 
 import {
   BehaviorIdle as Idle,
   BehaviorFindEntity as FindEntity,
-  BehaviorFollowEntity as FollowTarget,
+  BehaviorFollowEntity,
   BehaviorLookAtEntity as LookAtTarget,
-} from "@nxg-org/mineflayer-statemachine/src/behaviors";
+} from "../..//src/behaviors";
 
 // to replicate the original mineflayer-statemachine exactly:
 const LookAtPlayers = LookAtTarget.clone("LookAtPlayers");
 const LookAtFollowing = LookAtTarget.clone("LookAtFollowing");
+const FollowTarget = BehaviorFollowEntity.transform('FollowTarget', [{movements: undefined}])
 
 const transitions = [
   buildTransitionArgs('player says "hi"', Idle, FindEntity, [(e) => e.type === "player"]) // 1

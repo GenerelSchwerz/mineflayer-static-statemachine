@@ -63,7 +63,7 @@ function internalBuildNested<Enter extends StateBehaviorBuilder, Exit extends St
   exit?: Exit,
   enterIntermediateStates = true
 ): SpecifcNestedStateMachine<Enter, Exit> {
-  const states: Array<StateBehaviorBuilder> = []
+  const states: StateBehaviorBuilder[] = []
 
   states.push(enter)
 
@@ -86,7 +86,7 @@ function internalBuildNested<Enter extends StateBehaviorBuilder, Exit extends St
     public static readonly onStartupListeners = []
 
     public static readonly clone = clone
-    public static readonly transform = transform;
+    public static readonly transform = transform
   }
 }
 
@@ -107,7 +107,7 @@ export function newNestedStateMachine<Enter extends StateBehaviorBuilder, Exit e
   enter,
   exit,
   enterIntermediateStates = true
-}: Omit<NestedStateMachineOptions<NoArgs<Enter>, Exit>, "enterArgs">): SpecifcNestedStateMachine<Enter, Exit> {
+}: Omit<NestedStateMachineOptions<NoArgs<Enter>, Exit>, 'enterArgs'>): SpecifcNestedStateMachine<Enter, Exit> {
   return internalBuildNested(stateName, transitions, enter, undefined, exit, enterIntermediateStates)
 }
 
