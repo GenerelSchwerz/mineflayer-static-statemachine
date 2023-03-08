@@ -102,7 +102,6 @@ export class BotStateMachine<
   private findStatesRecursive (nested: typeof NestedStateMachine): void {
     for (const state of nested.states) {
       this.states.push(state)
-      console.log(state)
       if (isNestedStateMachine(state)) {
         this.findStatesRecursive(state)
       }
@@ -114,7 +113,6 @@ export class BotStateMachine<
       this.transitions.push(transition)
 
       for (const parentState of transition.parentStates) {
-        console.log(parentState)
         if (isNestedStateMachine(parentState)) {
           this.findTransitionsRecursive(parentState)
         }
