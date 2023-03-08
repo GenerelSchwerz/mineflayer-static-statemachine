@@ -1,4 +1,4 @@
-import { StateTransition } from './stateTransition';
+import { StateTransition } from './stateTransition'
 import { clone, transform } from './stateBehavior'
 import { NestedStateMachine } from './stateMachineNested'
 import { HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs } from './util'
@@ -12,30 +12,29 @@ import { HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, State
  * @param child
  * @returns
  */
-
 export function buildTransition<Parent extends StateBehaviorBuilder, Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parent,
   child: NoArgs<Child>
-): StateTransition<[Parent], Child>;
+): StateTransition<[Parent], Child>
 export function buildTransition<Parents extends readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: NoArgs<Child>
-): StateTransition<Parents, Child>;
+): StateTransition<Parents, Child>
 export function buildTransition<Parents extends StateBehaviorBuilder | readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: NoArgs<Child>
-): StateTransition<Parents extends StateBehaviorBuilder ? readonly [Parents]: Parents, Child> {
-  let realParents: readonly StateBehaviorBuilder[];
-  if (!(parents instanceof Array))  realParents = [parents as StateBehaviorBuilder];
-  else realParents = parents;
-  
-  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents]: Parents, Child>({
+): StateTransition<Parents extends StateBehaviorBuilder ? readonly [Parents] : Parents, Child> {
+  let realParents: readonly StateBehaviorBuilder[]
+  if (!(parents instanceof Array)) realParents = [parents]
+  else realParents = parents
+
+  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : Parents, Child>({
     parents: realParents as any,
     child,
-    name,
+    name
   } as any)
 }
 
@@ -49,30 +48,29 @@ export function buildTransition<Parents extends StateBehaviorBuilder | readonly 
    * @param args
    * @returns
    */
-
 export function buildTransitionArgs<Parent extends StateBehaviorBuilder, Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parent,
   child: HasArgs<Child>,
   args: StateConstructorArgs<Child>
-): StateTransition<[Parent], Child>;
+): StateTransition<[Parent], Child>
 export function buildTransitionArgs<Parents extends StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: HasArgs<Child>,
   args: StateConstructorArgs<Child>
-): StateTransition<Parents, Child>;
+): StateTransition<Parents, Child>
 export function buildTransitionArgs<Parents extends StateBehaviorBuilder | StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: HasArgs<Child>,
   args: StateConstructorArgs<Child>
-): StateTransition<Parents extends StateBehaviorBuilder ? [Parents]: Parents, Child> {
-  let realParents: StateBehaviorBuilder[];
-  if (!(parents instanceof Array))  realParents = [parents as StateBehaviorBuilder];
-  else realParents = parents;
-  
-  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents]: Parents, Child>({
+): StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : Parents, Child> {
+  let realParents: StateBehaviorBuilder[]
+  if (!(parents instanceof Array)) realParents = [parents]
+  else realParents = parents
+
+  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : Parents, Child>({
     parents: realParents as any,
     child,
     name,
@@ -87,22 +85,20 @@ export function buildTransitionArgs<Parents extends StateBehaviorBuilder | State
 //   this.entries[entry.name + entry.stateName] = [entry, args];
 // }
 
-
-
 export function buildNestedMachine<Enter extends StateBehaviorBuilder, Exit extends StateBehaviorBuilder> (
   stateName: string,
   transitions: Array<StateTransition<any, any>>,
   enter: NoArgs<Enter>,
   exit?: Exit,
   enterIntermediateStates?: boolean
-): SpecifcNestedStateMachine<Enter, [Exit]>;
+): SpecifcNestedStateMachine<Enter, [Exit]>
 export function buildNestedMachine<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[]> (
   stateName: string,
   transitions: Array<StateTransition<any, any>>,
   enter: NoArgs<Enter>,
   exit?: Exits,
   enterIntermediateStates?: boolean
-): SpecifcNestedStateMachine<Enter, Exits>;
+): SpecifcNestedStateMachine<Enter, Exits>
 export function buildNestedMachine<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder | StateBehaviorBuilder[]> (
   stateName: string,
   transitions: Array<StateTransition<any, any>>,
@@ -120,15 +116,15 @@ export function buildNestedMachineArgs<Enter extends StateBehaviorBuilder, Exit 
   enterArgs: StateConstructorArgs<Enter>,
   exit?: Exit,
   enterIntermediateStates?: boolean
-): SpecifcNestedStateMachine<Enter, [Exit]>;
-  export function buildNestedMachineArgs<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[]> (
-    stateName: string,
-    transitions: Array<StateTransition<any, any>>,
-    enter: HasArgs<Enter>,
-    enterArgs: StateConstructorArgs<Enter>,
-    exits?: Exits,
-    enterIntermediateStates?: boolean
-  ): SpecifcNestedStateMachine<Enter, Exits>;
+): SpecifcNestedStateMachine<Enter, [Exit]>
+export function buildNestedMachineArgs<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[]> (
+  stateName: string,
+  transitions: Array<StateTransition<any, any>>,
+  enter: HasArgs<Enter>,
+  enterArgs: StateConstructorArgs<Enter>,
+  exits?: Exits,
+  enterIntermediateStates?: boolean
+): SpecifcNestedStateMachine<Enter, Exits>
 export function buildNestedMachineArgs<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder | StateBehaviorBuilder[]> (
   stateName: string,
   transitions: Array<StateTransition<any, any>>,
@@ -160,13 +156,13 @@ function internalBuildNested<Enter extends StateBehaviorBuilder, Exits extends S
 
   states.push(enter)
 
-  let realExits: StateBehaviorBuilder[] | undefined = undefined;
+  let realExits: StateBehaviorBuilder[] | undefined
 
   if (exits != null) {
-    if (!(exits instanceof Array)) realExits = [exits as StateBehaviorBuilder];
-    else realExits = exits;
+    if (!(exits instanceof Array)) realExits = [exits]
+    else realExits = exits
     for (const exit of realExits) {
-      if (!states.includes(exit)) states.push(exit);
+      if (!states.includes(exit)) states.push(exit)
     }
   }
 
@@ -184,7 +180,7 @@ function internalBuildNested<Enter extends StateBehaviorBuilder, Exits extends S
     public static readonly states = states
     public static readonly enter = enter
     public static readonly enterArgs: StateConstructorArgs<typeof enter> = enterArgs as any
-    public static readonly exits? = realExits as any;
+    public static readonly exits? = realExits as any
     public static readonly enterIntermediateStates = enterIntermediateStates
     public static readonly onStartupListeners = []
 

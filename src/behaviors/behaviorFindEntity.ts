@@ -1,6 +1,6 @@
 import { StateBehavior, StateMachineData } from '../stateBehavior'
 import type { Bot } from 'mineflayer'
-import type { Entity } from 'prismarine-entity' 
+import type { Entity } from 'prismarine-entity'
 
 export class BehaviorFindEntity extends StateBehavior {
   public filter: (entity: Entity) => boolean

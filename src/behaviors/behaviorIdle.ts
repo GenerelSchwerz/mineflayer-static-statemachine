@@ -14,4 +14,3 @@ export class BehaviorExit extends StateBehavior {}
  * Wildcard used internally. Use this to check against all other states.
  */
 export class BehaviorWildcard extends StateBehavior {}
-

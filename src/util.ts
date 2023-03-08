@@ -2,7 +2,6 @@ import type { Bot } from 'mineflayer'
 import type { StateBehavior, StateMachineData } from './stateBehavior'
 import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNested'
 
-
 export type StateBehaviorBuilder<State extends StateBehavior = StateBehavior, Args extends any[] = any[]> = NonConstructor<typeof StateBehavior> &
 (new (bot: Bot, data: StateMachineData, ...additonal: Args) => State)
 
@@ -26,7 +25,7 @@ export type StateConstructorArgs<Child extends StateBehaviorBuilder> = OmitTwo<C
 export type SpecifcNestedStateMachine<
   Enter extends StateBehaviorBuilder = StateBehaviorBuilder,
   Exit extends StateBehaviorBuilder[] = StateBehaviorBuilder[]
-> =typeof NestedStateMachine & NestedStateMachineOptions<Enter, Exit>
+> = typeof NestedStateMachine & NestedStateMachineOptions<Enter, Exit>
 
 type NonConstructorKeys<T> = { [P in keyof T]: T[P] extends new () => any ? never : P }[keyof T]
 export type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>
@@ -40,8 +39,6 @@ export function isNestedStateMachine (first: Function): first is typeof NestedSt
   }
   return false
 }
-
-
 
 export declare type OmitX<ToRemove extends number, Args extends any[], Remain extends any[] = []> =
   ToRemove extends Remain['length']
@@ -75,12 +72,11 @@ export type MergeStates<
     ? Start extends true
       ? MergeStates<Rest, Final | InstanceType<R>, Start>
       : MergeStates<Rest, InstanceType<R>, true>
-    : StateBehavior;
-
+    : StateBehavior
 
 export type ReplaceKeyTypes<Original extends any, Replacement> = {
-    [Key in keyof Original]: Key extends keyof Replacement ?
-      Original[Key] extends Replacement[Key] ?
+  [Key in keyof Original]: Key extends keyof Replacement ?
+    Original[Key] extends Replacement[Key] ?
       Original[Key] : Replacement[Key] : Original[Key]
 }
 
