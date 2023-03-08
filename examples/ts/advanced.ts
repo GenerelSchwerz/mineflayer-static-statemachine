@@ -23,7 +23,7 @@ import {
   buildTransition,
   buildNestedMachine,
   StateBehavior
-} from "../../";
+} from "../../src";
 
 // Import required behaviors.
 import {
@@ -34,11 +34,11 @@ import {
   BehaviorLookAtEntity as LookAtTarget,
   BehaviorFollowEntity as FollowEntity,
   BehaviorFollowEntity,
-} from "../../lib/behaviors";
+} from "../../src/behaviors";
 
 console.log(StateBehavior)
 
-const FindPlayer = FindEntity.transform("FindPlayer", [e=>e.type === "player"])
+const FindPlayer = FindEntity.transform("FindPlayer", [undefined])
 const CustomFollowEntity = FollowEntity.transform("FollowPlayer", [{followDistance: 2}])
 
 
