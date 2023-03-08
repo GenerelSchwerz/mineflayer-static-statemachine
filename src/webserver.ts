@@ -211,7 +211,7 @@ export class StateMachineWebserver {
    * @returns id of state.
    */
   private getStateId (
-    state: StateBehaviorBuilder,
+    state: typeof StateBehavior,
     targetMachine: typeof NestedStateMachine,
     searching: typeof NestedStateMachine = this.stateMachine.rootType,
     data = { offset: 0 }

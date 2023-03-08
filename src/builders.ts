@@ -1,4 +1,4 @@
-import { clone, StateTransition, transform } from './stateBehavior'
+import { clone, StateBehavior, StateTransition, transform } from './stateBehavior'
 import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNested'
 import { HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
@@ -11,7 +11,7 @@ import { HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, State
  * @param child
  * @returns
  */
-export function buildTransition<Parent extends StateBehaviorBuilder, Child extends StateBehaviorBuilder> (
+export function buildTransition<Parent extends typeof StateBehavior, Child extends StateBehaviorBuilder> (
   name: string,
   parent: Parent,
   child: NoArgs<Child>
@@ -33,7 +33,7 @@ export function buildTransition<Parent extends StateBehaviorBuilder, Child exten
    * @param args
    * @returns
    */
-export function buildTransitionArgs<Parent extends StateBehaviorBuilder, Child extends StateBehaviorBuilder> (
+export function buildTransitionArgs<Parent extends typeof StateBehavior, Child extends StateBehaviorBuilder> (
   name: string,
   parent: Parent,
   child: HasArgs<Child>,

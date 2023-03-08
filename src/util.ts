@@ -69,7 +69,7 @@ export declare type CustomNarrow<A extends any> = Try<A, [], CustomNarrowRaw<A>>
 
 export type WebserverBehaviorPositionIterable = Iterable<{
   parentMachine?: typeof NestedStateMachine
-  state: typeof StateBehavior
+  state: StateBehaviorBuilder
   x: number
   y: number
 }>

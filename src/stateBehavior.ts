@@ -30,7 +30,7 @@ export interface StateMachineData {
  * to another state (the child).
  */
 export class StateTransition<
-  Parent extends StateBehaviorBuilder = StateBehaviorBuilder,
+  Parent extends typeof StateBehavior = typeof StateBehavior,
   Child extends StateBehaviorBuilder = StateBehaviorBuilder
 > {
   readonly parentState: Parent
@@ -81,7 +81,7 @@ export class StateTransition<
 }
 
 
-export class StateBehavior {
+export abstract class StateBehavior {
   /**
    * Name displayed on the webserver.
    */
@@ -147,7 +147,7 @@ export class StateBehavior {
  * The parameters for initializing a state transition.
  */
 export interface StateTransitionInfo<
-  Parent extends StateBehaviorBuilder = StateBehaviorBuilder,
+  Parent extends typeof StateBehavior = typeof StateBehavior,
   Child extends StateBehaviorBuilder = StateBehaviorBuilder
 > {
   parent: Parent

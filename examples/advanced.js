@@ -117,3 +117,11 @@ bot.once("spawn", () => {
     }
   })
 });
+
+let time = performance.now()
+machine.on('stateEntered', (type, nested, state) => {
+  const now = performance.now();
+  console.log(type.stateName, state.stateName, now - time);
+
+  time = now;
+})

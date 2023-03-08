@@ -108,3 +108,6 @@ bot.once("spawn", () => {
     if (cmd === 'follow') rootTransitions[1].trigger()
   })
 });
+
+
+
