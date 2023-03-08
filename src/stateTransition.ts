@@ -5,7 +5,7 @@ import { HasArgs, MergeStates, StateBehaviorBuilder, StateConstructorArgs } from
  * The parameters for initializing a state transition.
  */
 export interface StateTransitionInfo<
-  Parents extends StateBehaviorBuilder[] = StateBehaviorBuilder[],
+  Parents extends readonly StateBehaviorBuilder[] = readonly StateBehaviorBuilder[],
   Child extends StateBehaviorBuilder = StateBehaviorBuilder
 > {
   parents: Parents;
@@ -23,7 +23,7 @@ export interface StateTransitionInfo<
  * to another state (the child).
  */
 export class StateTransition<
-  Parents extends StateBehaviorBuilder[] = StateBehaviorBuilder[],
+  Parents extends readonly StateBehaviorBuilder[] = readonly StateBehaviorBuilder[],
   Child extends StateBehaviorBuilder = StateBehaviorBuilder
 > {
   readonly parentStates: Parents;

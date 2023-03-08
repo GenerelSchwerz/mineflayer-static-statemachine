@@ -26,7 +26,7 @@ export type StateConstructorArgs<Child extends StateBehaviorBuilder> = OmitTwo<C
 export type SpecifcNestedStateMachine<
   Enter extends StateBehaviorBuilder = StateBehaviorBuilder,
   Exit extends StateBehaviorBuilder[] = StateBehaviorBuilder[]
-> = typeof NestedStateMachine & NestedStateMachineOptions<Enter, Exit>
+> =typeof NestedStateMachine & NestedStateMachineOptions<Enter, Exit>
 
 type NonConstructorKeys<T> = { [P in keyof T]: T[P] extends new () => any ? never : P }[keyof T]
 export type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>
@@ -66,17 +66,23 @@ declare type Try<A1 extends any, A2 extends any, Catch = never> = A1 extends A2 
 export declare type CustomNarrow<A extends any> = Try<A, [], CustomNarrowRaw<A>>
 
 export type MergeStates<
-  ToMerge extends StateBehaviorBuilder[],
+  ToMerge extends readonly StateBehaviorBuilder[],
   Final extends StateBehavior = StateBehavior,
   Start extends boolean = false
 > = ToMerge extends []
   ? Final
-  : ToMerge extends [first: infer R extends StateBehaviorBuilder, ...i: infer Rest extends StateBehaviorBuilder[]]
-  ? Start extends true
-    ? MergeStates<Rest, Final | InstanceType<R>, Start>
-    : MergeStates<Rest, InstanceType<R>, true>
-  : StateBehavior;
+  : ToMerge extends readonly [first: infer R extends StateBehaviorBuilder, ...i: infer Rest extends readonly StateBehaviorBuilder[]]
+    ? Start extends true
+      ? MergeStates<Rest, Final | InstanceType<R>, Start>
+      : MergeStates<Rest, InstanceType<R>, true>
+    : StateBehavior;
 
+
+export type ReplaceKeyTypes<Original extends any, Replacement> = {
+    [Key in keyof Original]: Key extends keyof Replacement ?
+      Original[Key] extends Replacement[Key] ?
+      Original[Key] : Replacement[Key] : Original[Key]
+}
 
 export type WebserverBehaviorPositionIterable = Iterable<{
   parentMachine?: typeof NestedStateMachine

@@ -144,7 +144,7 @@ export class NestedStateMachine
     for (let i = 0; i < transitions.length; i++) {
       const transition = transitions[i]
       if (this._activeStateType && transition.parentStates.includes(this._activeStateType) || transition.parentStates.includes(BehaviorWildcard)) {
-        if (transition.isTriggered() || transition.shouldTransition(this._activeState)) {
+        if (transition.isTriggered() || transition.shouldTransition(this._activeState as any)) {
           transition.resetTrigger()
           i = -1
           transition.onTransition(this.data)

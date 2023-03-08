@@ -33,6 +33,7 @@ import {
   BehaviorFindEntity as FindEntity,
   BehaviorLookAtEntity as LookAtTarget,
   BehaviorFollowEntity as FollowEntity,
+  BehaviorFollowEntity,
 } from "../../lib/behaviors";
 
 console.log(StateBehavior)
@@ -55,7 +56,7 @@ const comeToMeTransitions = [
     .setOnTransition(() => bot.chat('Reached goal, finishing!'))
 ]
 
-const comeMachine = buildNestedMachine('comeToMe', comeToMeTransitions, FindPlayer)
+const comeMachine = buildNestedMachine('comeToMe', comeToMeTransitions, FindPlayer, Exit);
 
 const followAndLookTransitions = [
   // trigger this to exit the state machine.
@@ -76,7 +77,13 @@ const followAndLookTransitions = [
   buildTransition("followToLook", CustomFollowEntity, LookAtTarget)
     .setShouldTransition(state => state.distanceToTarget() <= 2)
     .setOnTransition(() => bot.chat('Found entity!')),
+
+  // new multiple transitions, strongly typed! (W.I.P.)
+  buildTransition('followingTooFar', [CustomFollowEntity, LookAtTarget] as const, Exit)
+    .setShouldTransition(state => state.distanceToTarget() > 32)
+
 ]
+
 
 const followMachine = buildNestedMachine('followAndLook', followAndLookTransitions, FindPlayer, Exit)
 
