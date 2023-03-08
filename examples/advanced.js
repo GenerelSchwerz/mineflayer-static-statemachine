@@ -74,10 +74,16 @@ const followAndLookTransitions = [
     .setShouldTransition(state => state.distanceToTarget() > 2),
 
   buildTransition("followToLook", CustomFollowEntity, LookAtTarget)
-    .setShouldTransition(state => state.distanceToTarget() <= 2)
+    .setShouldTransition(state => state.distanceToTarget() <= 2),
+
+
+  // new multiple transitions, strongly typed! (W.I.P.)
+  buildTransition('followingTooFar', [CustomFollowEntity, LookAtTarget], Exit)
+    .setShouldTransition(state => state.distanceToTarget() > 32)
+
 ]
 
-const followMachine = buildNestedMachine('followAndLook', followAndLookTransitions, FindPlayer, Exit)
+const followMachine = buildNestedMachine('followAndLook', followAndLookTransitions, FindPlayer, [Exit])
 
 const rootTransitions = [
 

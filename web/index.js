@@ -552,7 +552,6 @@ function loadStates (packet) {
     stateNode.activeState = false
     stateNode.enterState = graph.nestedGroups[state.nestGroup].enter === state.id
     stateNode.exitState = graph.nestedGroups[state.nestGroup].exits?.includes(state.id)
-    console.log("exits:", graph.nestedGroups[state.nestGroup].exits, "state:", state.id)
     stateNode.nestedGroup = state.nestGroup
 
     graph.states.push(stateNode)

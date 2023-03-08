@@ -288,16 +288,7 @@ export class StateMachineWebserver {
     for (let i = 0; i < this.stateMachine.nestedMachinesHelp.length; i++) {
       const machine = this.stateMachine.nestedMachinesHelp[i]
       const depth = this.stateMachine.getNestedMachineDepth(machine)
-      console.log(machine.exits, machine.exits != null)
       nestGroups.push({
-        id: i,
-        enter: this.getStateId(machine.enter, machine),
-        exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)): undefined,
-        indent: depth,
-        name: machine.stateName
-      })
-
-      console.log({
         id: i,
         enter: this.getStateId(machine.enter, machine),
         exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)): undefined,

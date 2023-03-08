@@ -18,17 +18,17 @@ export function buildTransition<Parent extends StateBehaviorBuilder, Child exten
   parents: Parent,
   child: NoArgs<Child>
 ): StateTransition<[Parent], Child>;
-export function buildTransition<Parents extends StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
+export function buildTransition<Parents extends readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: NoArgs<Child>
 ): StateTransition<Parents, Child>;
-export function buildTransition<Parents extends StateBehaviorBuilder | StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
+export function buildTransition<Parents extends StateBehaviorBuilder | readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: NoArgs<Child>
-): StateTransition<Parents extends StateBehaviorBuilder ? [Parents]: Parents, Child> {
-  let realParents: StateBehaviorBuilder[];
+): StateTransition<Parents extends StateBehaviorBuilder ? readonly [Parents]: Parents, Child> {
+  let realParents: readonly StateBehaviorBuilder[];
   if (!(parents instanceof Array))  realParents = [parents as StateBehaviorBuilder];
   else realParents = parents;
   
