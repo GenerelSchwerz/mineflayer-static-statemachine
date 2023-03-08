@@ -266,12 +266,16 @@ export class StateMachineWebserver {
       const foundTransitions = machine.transitions
       for (let k = 0; k < foundTransitions.length; k++) {
         const transition = foundTransitions[k]
-        transitions.push({
-          id: i,
-          name: transition.name,
-          parentState: this.getStateId(transition.parentState, machine),
-          childState: this.getStateId(transition.childState, machine)
-        })
+        for (let l = 0; l < transition.parentStates.length; l++) {
+          const parentState = transition.parentStates[l];
+          transitions.push({
+            id: i,
+            name: transition.name,
+            parentState: this.getStateId(parentState, machine),
+            childState: this.getStateId(transition.childState, machine)
+          })
+        }
+
       }
     }
 
@@ -284,10 +288,19 @@ export class StateMachineWebserver {
     for (let i = 0; i < this.stateMachine.nestedMachinesHelp.length; i++) {
       const machine = this.stateMachine.nestedMachinesHelp[i]
       const depth = this.stateMachine.getNestedMachineDepth(machine)
+      console.log(machine.exits, machine.exits != null)
       nestGroups.push({
         id: i,
         enter: this.getStateId(machine.enter, machine),
-        exit: machine.exit != null ? this.getStateId(machine.exit, machine) : undefined,
+        exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)): undefined,
+        indent: depth,
+        name: machine.stateName
+      })
+
+      console.log({
+        id: i,
+        enter: this.getStateId(machine.enter, machine),
+        exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)): undefined,
         indent: depth,
         name: machine.stateName
       })
@@ -306,7 +319,7 @@ interface StateMachineStructurePacket {
 interface NestedStateMachinePacket {
   id: number
   enter: number
-  exit?: number
+  exits?: number[]
   indent: number
   name?: string
 }

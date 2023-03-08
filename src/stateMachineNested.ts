@@ -1,15 +1,17 @@
 import EventEmitter from 'events'
 import { Bot } from 'mineflayer'
 import { StrictEventEmitter } from 'strict-event-emitter-types'
-import { StateBehavior, StateTransition, StateMachineData, clone, transform } from './stateBehavior'
+import { BehaviorWildcard } from './behaviors'
+import { StateBehavior, clone, transform, StateMachineData } from './stateBehavior'
+import { StateTransition } from './stateTransition'
 import { HasArgs, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
-export interface NestedStateMachineOptions<Enter extends StateBehaviorBuilder, Exit extends StateBehaviorBuilder> {
+export interface NestedStateMachineOptions<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[]> {
   stateName: string
   readonly transitions: Array<StateTransition<any, any>>
   readonly enter: Enter
   readonly enterArgs: HasArgs<Enter> extends Enter ? StateConstructorArgs<Enter> : never
-  readonly exit?: Exit
+  readonly exits?: Exits
   enterIntermediateStates?: boolean
 }
 
@@ -26,7 +28,7 @@ export class NestedStateMachine
   public static readonly states: Array<StateBehaviorBuilder>
   public static readonly enter: StateBehaviorBuilder
   public static readonly enterArgs: any[] | undefined = undefined // StateConstructorArgs<typeof this.enter>; // sadly, this is always undefined (no static generics).
-  public static readonly exit?: StateBehaviorBuilder
+  public static readonly exits?: StateBehaviorBuilder[]
   public static readonly enterIntermediateStates: boolean
 
   public static readonly clone = clone
@@ -130,6 +132,8 @@ export class NestedStateMachine
     this._activeState.onStateExited?.()
   }
 
+
+
   public update (): void {
     // update will only occur when this is active anyway, so return if not.
     if (this._activeState == null) return
@@ -139,7 +143,7 @@ export class NestedStateMachine
     let args: any[] | undefined
     for (let i = 0; i < transitions.length; i++) {
       const transition = transitions[i]
-      if (transition.parentState === this._activeStateType || transition.parentState === StateBehavior) {
+      if (this._activeStateType && transition.parentStates.includes(this._activeStateType) || transition.parentStates.includes(BehaviorWildcard)) {
         if (transition.isTriggered() || transition.shouldTransition(this._activeState)) {
           transition.resetTrigger()
           i = -1
@@ -168,7 +172,8 @@ export class NestedStateMachine
    */
   public isFinished (): boolean {
     if (this.active == null) return true
-    if (this.staticRef.exit == null) return false
-    return this._activeStateType === this.staticRef.exit
+    if (this._activeStateType == null) return true;
+    if (this.staticRef.exits == null) return false
+    return this.staticRef.exits.includes(this._activeStateType);
   }
 }

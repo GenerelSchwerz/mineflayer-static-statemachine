@@ -27,6 +27,7 @@ import {
 
 // Import required behaviors.
 import {
+  BehaviorWildcard as Wildcard,
   BehaviorIdle as Idle,
   BehaviorExit as Exit,
   BehaviorFindEntity as FindEntity,
@@ -58,7 +59,7 @@ const comeMachine = buildNestedMachine('comeToMe', comeToMeTransitions, FindPlay
 
 const followAndLookTransitions = [
   // trigger this to exit the state machine.
-  buildTransition('wildcardExit', StateBehavior, Exit),
+  buildTransition('wildcardExit', Wildcard, Exit),
 
   buildTransition("findToExit", FindPlayer, Exit)
     .setShouldTransition(state => !state.foundEntity())
@@ -77,7 +78,8 @@ const followAndLookTransitions = [
     .setOnTransition(() => bot.chat('Found entity!')),
 ]
 
-const followMachine = buildNestedMachine('followAndLook', followAndLookTransitions, FindPlayer)
+const followMachine = buildNestedMachine('followAndLook', followAndLookTransitions, FindPlayer, Exit)
+
 
 const rootTransitions = [
   buildTransition('come', Idle, comeMachine)

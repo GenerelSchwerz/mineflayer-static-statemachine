@@ -13,6 +13,7 @@ const LINE_SEPARATION = 16
 const LINE_HIGHLIGHT = '#888888'
 const LINE_TEXT_FONT = '12px Calibri'
 const LAYER_ENTER_COLOR = '#559966'
+const LAYER_EXIT_COLOR = '#009ed3'
 
 let graph
 let nestedGroups
@@ -232,8 +233,7 @@ class State {
     if (this.layer !== graph.activeLayer) { return }
 
     this.fillNodePath(ctx)
-
-    ctx.fillStyle = this.enterState ? LAYER_ENTER_COLOR : NODE_COLOR
+    ctx.fillStyle = this.enterState ? LAYER_ENTER_COLOR : this.exitState ? LAYER_EXIT_COLOR : NODE_COLOR
     ctx.fill()
 
     ctx.lineWidth = 2
@@ -491,11 +491,11 @@ class Transition {
 }
 
 class NestedGroup {
-  constructor (id, indent, enter, exit) {
+  constructor (id, indent, enter, exits) {
     this.id = id
     this.indent = indent
     this.enter = enter
-    this.exit = exit
+    this.exits = exits
   }
 }
 
@@ -551,7 +551,8 @@ function loadStates (packet) {
     const stateNode = new State(state.id, state.name, rect, state.nestGroup)
     stateNode.activeState = false
     stateNode.enterState = graph.nestedGroups[state.nestGroup].enter === state.id
-    stateNode.exitState = graph.nestedGroups[state.nestGroup].exit === state.id
+    stateNode.exitState = graph.nestedGroups[state.nestGroup].exits?.includes(state.id)
+    console.log("exits:", graph.nestedGroups[state.nestGroup].exits, "state:", state.id)
     stateNode.nestedGroup = state.nestGroup
 
     graph.states.push(stateNode)
@@ -575,7 +576,7 @@ function loadNestedGroups (packet) {
   const buttonGroup = document.getElementById('layerButtons')
 
   for (const n of packet.nestGroups) {
-    const g = new NestedGroup(n.id, n.indent, n.enter, n.exit)
+    const g = new NestedGroup(n.id, n.indent, n.enter, n.exits)
     graph.nestedGroups.push(g)
 
     const button = document.createElement('button')

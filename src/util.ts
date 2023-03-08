@@ -2,6 +2,7 @@ import type { Bot } from 'mineflayer'
 import type { StateBehavior, StateMachineData } from './stateBehavior'
 import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNested'
 
+
 export type StateBehaviorBuilder<State extends StateBehavior = StateBehavior, Args extends any[] = any[]> = NonConstructor<typeof StateBehavior> &
 (new (bot: Bot, data: StateMachineData, ...additonal: Args) => State)
 
@@ -24,7 +25,7 @@ export type StateConstructorArgs<Child extends StateBehaviorBuilder> = OmitTwo<C
 
 export type SpecifcNestedStateMachine<
   Enter extends StateBehaviorBuilder = StateBehaviorBuilder,
-  Exit extends StateBehaviorBuilder = StateBehaviorBuilder
+  Exit extends StateBehaviorBuilder[] = StateBehaviorBuilder[]
 > = typeof NestedStateMachine & NestedStateMachineOptions<Enter, Exit>
 
 type NonConstructorKeys<T> = { [P in keyof T]: T[P] extends new () => any ? never : P }[keyof T]
@@ -64,7 +65,17 @@ declare type CustomNarrowRaw<A> = A extends []
 declare type Try<A1 extends any, A2 extends any, Catch = never> = A1 extends A2 ? A1 : Catch
 export declare type CustomNarrow<A extends any> = Try<A, [], CustomNarrowRaw<A>>
 
-
+export type MergeStates<
+  ToMerge extends StateBehaviorBuilder[],
+  Final extends StateBehavior = StateBehavior,
+  Start extends boolean = false
+> = ToMerge extends []
+  ? Final
+  : ToMerge extends [first: infer R extends StateBehaviorBuilder, ...i: infer Rest extends StateBehaviorBuilder[]]
+  ? Start extends true
+    ? MergeStates<Rest, Final | InstanceType<R>, Start>
+    : MergeStates<Rest, InstanceType<R>, true>
+  : StateBehavior;
 
 
 export type WebserverBehaviorPositionIterable = Iterable<{
