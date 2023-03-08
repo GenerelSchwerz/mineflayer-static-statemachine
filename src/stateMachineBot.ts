@@ -31,6 +31,7 @@ export class BotStateMachine<
   readonly nestedMachinesHelp: Array<typeof NestedStateMachine>
 
   private autoUpdate: boolean
+  private _activeMachine?: typeof NestedStateMachine;
 
   constructor ({
     bot,
@@ -53,19 +54,17 @@ export class BotStateMachine<
     this.root = new Root(bot, data)
     this.autoUpdate = autoUpdate
 
-    if (autoStart) {
-      this.root.active = true
-      this.root.onStateEntered()
+    if (autoStart) this.start(); 
+  }
 
-      if (autoUpdate) {
-        this.bot.on('physicsTick', this.update)
-      }
-    }
+  public get activeMachine(): typeof NestedStateMachine | undefined {
+    return this._activeMachine;
   }
 
   public start (autoUpdate = this.autoUpdate): void {
     if (this.root.active) throw Error('Root already started! No need to start again.')
     this.root.active = true
+    this._activeMachine = this.rootType;
     this.root.onStateEntered()
 
     if (!this.bot.listeners('physicsTick').includes(this.update) && autoUpdate) {
@@ -86,8 +85,11 @@ export class BotStateMachine<
     this.nestedMachinesNew[depth] ||= []
     this.nestedMachinesNew[depth].push(nested)
 
-    nested.addEventualListener('stateEntered', (machine, state) => this.emit('stateEntered', nested, machine, state))
     nested.addEventualListener('stateExited', (machine, state) => this.emit('stateExited', nested, machine, state))
+    nested.addEventualListener('stateEntered', (machine, state) => {
+      this._activeMachine = nested;
+      this.emit('stateEntered', nested, machine, state)
+    })
 
     for (const state of nested.states) {
       if (isNestedStateMachine(state)) {

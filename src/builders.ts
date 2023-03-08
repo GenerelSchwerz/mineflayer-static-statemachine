@@ -1,6 +1,6 @@
-import { StateTransition } from './stateBehavior'
+import { clone, StateTransition, transform } from './stateBehavior'
 import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNested'
-import { clone, HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs, transform } from './util'
+import { HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
 /**
  * Builds a transition with no consttructor arguments.

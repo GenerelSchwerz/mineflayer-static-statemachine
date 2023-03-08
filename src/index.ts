@@ -11,7 +11,3 @@ export {
   newNestedStateMachine,
   newNestedStateMachineArgs
 } from './builders'
-
-export const globalSettings = {
-  debugMode: true
-}
