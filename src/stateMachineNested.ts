@@ -25,7 +25,7 @@ export class NestedStateMachine
   implements StateBehavior {
   public static readonly stateName: string = this.name
   public static readonly transitions: StateTransition[]
-  public static readonly states: Array<StateBehaviorBuilder>
+  public static readonly states: StateBehaviorBuilder[]
   public static readonly enter: StateBehaviorBuilder
   public static readonly enterArgs: any[] | undefined = undefined // StateConstructorArgs<typeof this.enter>; // sadly, this is always undefined (no static generics).
   public static readonly exits?: StateBehaviorBuilder[]
@@ -33,7 +33,7 @@ export class NestedStateMachine
 
   public static readonly clone = clone
 
-  public static readonly transform = transform;
+  public static readonly transform = transform
 
   // not correct but whatever.
   public static readonly onStartupListeners: Array<
@@ -61,7 +61,6 @@ export class NestedStateMachine
     if (this.onStartupListeners.find((l) => l[0] === key) != null) return
     this.onStartupListeners.push([key, listener])
   }
-
 
   /**
    * Getter (does not actually get specific type, so class may not match)
@@ -94,7 +93,7 @@ export class NestedStateMachine
   /**
    * Getter
    */
-  public get states (): Array<StateBehaviorBuilder> {
+  public get states (): StateBehaviorBuilder[] {
     return (this.constructor as typeof NestedStateMachine).states
   }
 
@@ -132,8 +131,6 @@ export class NestedStateMachine
     this._activeState.onStateExited?.()
   }
 
-
-
   public update (): void {
     // update will only occur when this is active anyway, so return if not.
     if (this._activeState == null) return
@@ -143,7 +140,7 @@ export class NestedStateMachine
     let args: any[] | undefined
     for (let i = 0; i < transitions.length; i++) {
       const transition = transitions[i]
-      if (this._activeStateType && transition.parentStates.includes(this._activeStateType) || transition.parentStates.includes(BehaviorWildcard)) {
+      if ((this._activeStateType != null && transition.parentStates.includes(this._activeStateType)) || transition.parentStates.includes(BehaviorWildcard)) {
         if (transition.isTriggered() || transition.shouldTransition(this._activeState as any)) {
           transition.resetTrigger()
           i = -1
@@ -160,7 +157,7 @@ export class NestedStateMachine
       // transition.resetTrigger() // always reset to false to avoid false positives.
     }
 
-    if (this.isFinished()) return;
+    if (this.isFinished()) return
 
     if (this._activeStateType != null && this._activeStateType !== lastState) {
       this.enterState(this._activeStateType, this.bot, args)
@@ -172,8 +169,8 @@ export class NestedStateMachine
    */
   public isFinished (): boolean {
     if (this.active == null) return true
-    if (this._activeStateType == null) return true;
+    if (this._activeStateType == null) return true
     if (this.staticRef.exits == null) return false
-    return this.staticRef.exits.includes(this._activeStateType);
+    return this.staticRef.exits.includes(this._activeStateType)
   }
 }

@@ -8,5 +8,5 @@ export {
   buildNestedMachine,
   buildNestedMachineArgs,
   buildTransition,
-  buildTransitionArgs,
+  buildTransitionArgs
 } from './builders'

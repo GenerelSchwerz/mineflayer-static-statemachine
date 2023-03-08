@@ -267,7 +267,7 @@ export class StateMachineWebserver {
       for (let k = 0; k < foundTransitions.length; k++) {
         const transition = foundTransitions[k]
         for (let l = 0; l < transition.parentStates.length; l++) {
-          const parentState = transition.parentStates[l];
+          const parentState = transition.parentStates[l]
           transitions.push({
             id: i,
             name: transition.name,
@@ -275,7 +275,6 @@ export class StateMachineWebserver {
             childState: this.getStateId(transition.childState, machine)
           })
         }
-
       }
     }
 
@@ -291,7 +290,7 @@ export class StateMachineWebserver {
       nestGroups.push({
         id: i,
         enter: this.getStateId(machine.enter, machine),
-        exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)): undefined,
+        exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)) : undefined,
         indent: depth,
         name: machine.stateName
       })
