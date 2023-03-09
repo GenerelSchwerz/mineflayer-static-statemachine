@@ -79,7 +79,7 @@ const followAndLookTransitions = [
     .setOnTransition(() => bot.chat('Found entity!')),
 
   // new multiple transitions, strongly typed! (W.I.P.)
-  buildTransition('followingTooFar', [CustomFollowEntity, LookAtTarget] as const, Exit)
+  buildTransition('followingTooFar', [CustomFollowEntity, LookAtTarget], Exit)
     .setShouldTransition(state => state.distanceToTarget() > 32)
 
 ]

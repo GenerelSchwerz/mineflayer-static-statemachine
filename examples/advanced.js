@@ -23,7 +23,7 @@ const {
   buildNestedMachine,
   StateMachineWebserver,
   WebserverBehaviorPositions
-} = require("@nxg-org/mineflayer-statemachine");
+} = require("../");
 
 // Import required behaviors.
 // Note: Behavior renaming happens here.
@@ -34,7 +34,7 @@ const {
   BehaviorFindEntity : FindEntity,
   BehaviorLookAtEntity : LookAtTarget,
   BehaviorFollowEntity : FollowEntity,
-} = require("@nxg-org/mineflayer-statemachine/lib/behaviors")
+} = require("../lib/behaviors")
 
 // Have a class that requires arguments and you're too lazy to provide them every time?
 // No worries, now you can transform this class into a new one using these provided arguments!
@@ -106,7 +106,6 @@ const followAndLookTransitions = [
   buildTransition("followToLook", CustomFollowEntity, LookAtTarget)
     .setShouldTransition(state => state.distanceToTarget() <= 2),
 
-  // NOTE: WIP typings
   // Another new feature! Multiple parents for transitions.
   // In this example, both of these classes have the method `distanceToTarget`
   // So it's safe to call this method! (in typescript, this is strongly checked)

@@ -21,7 +21,7 @@ export interface StateTransitionInfo<
  * to another state (the child).
  */
 export class StateTransition<
-  Parents extends readonly StateBehaviorBuilder[] = readonly StateBehaviorBuilder[],
+  Parents extends readonly any[] = readonly StateBehaviorBuilder[],
   Child extends StateBehaviorBuilder = StateBehaviorBuilder
 > {
   readonly parentStates: Parents

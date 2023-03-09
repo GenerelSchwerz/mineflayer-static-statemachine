@@ -1,7 +1,7 @@
 import { StateTransition } from './stateTransition'
 import { clone, transform } from './stateBehavior'
 import { NestedStateMachine } from './stateMachineNested'
-import { HasArgs, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs } from './util'
+import { HasArgs, ListType, NoArgs, SpecifcNestedStateMachine, StateBehaviorBuilder, StateConstructorArgs, U2T } from './util'
 
 /**
  * Builds a transition with no consttructor arguments.
@@ -21,17 +21,17 @@ export function buildTransition<Parents extends readonly StateBehaviorBuilder[],
   name: string,
   parents: Parents,
   child: NoArgs<Child>
-): StateTransition<Parents, Child>
+): StateTransition<U2T<ListType<Parents>>, Child>
 export function buildTransition<Parents extends StateBehaviorBuilder | readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder> (
   name: string,
   parents: Parents,
   child: NoArgs<Child>
-): StateTransition<Parents extends StateBehaviorBuilder ? readonly [Parents] : Parents, Child> {
+): StateTransition<Parents extends StateBehaviorBuilder ? readonly [Parents] : U2T<ListType<Parents>>, Child> {
   let realParents: readonly StateBehaviorBuilder[]
   if (!(parents instanceof Array)) realParents = [parents]
   else realParents = parents
 
-  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : Parents, Child>({
+  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : U2T<ListType<Parents>>, Child>({
     parents: realParents as any,
     child,
     name
@@ -65,12 +65,12 @@ export function buildTransitionArgs<Parents extends StateBehaviorBuilder | State
   parents: Parents,
   child: HasArgs<Child>,
   args: StateConstructorArgs<Child>
-): StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : Parents, Child> {
+): StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : U2T<ListType<Parents>>, Child> {
   let realParents: StateBehaviorBuilder[]
   if (!(parents instanceof Array)) realParents = [parents]
   else realParents = parents
 
-  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : Parents, Child>({
+  return new StateTransition<Parents extends StateBehaviorBuilder ? [Parents] : U2T<ListType<Parents>>, Child>({
     parents: realParents as any,
     child,
     name,
