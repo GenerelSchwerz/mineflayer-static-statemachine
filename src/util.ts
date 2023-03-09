@@ -5,7 +5,7 @@ import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNes
 export type StateBehaviorBuilder<State extends StateBehavior = StateBehavior, Args extends any[] = any[]> = NonConstructor<typeof StateBehavior> &
 (new (bot: Bot, data: StateMachineData, ...additonal: Args) => State)
 
-export type OmitTwo<T extends any[]> = T extends [first?: any, second?: any, ...any: infer R] ? R : never
+export type OmitTwo<T extends any[]> = T extends [any, any, ...infer R] ? R : never
 
 export type HasArgs<Child extends StateBehaviorBuilder> = OmitTwo<Required<ConstructorParameters<Child>>> extends [
   first: any,
@@ -43,7 +43,7 @@ export function isNestedStateMachine (first: Function): first is typeof NestedSt
 export declare type OmitX<ToRemove extends number, Args extends any[], Remain extends any[] = []> =
   ToRemove extends Remain['length']
     ? Args
-    : Args extends [first: undefined, ...i: any]
+    : Args extends []
       ? never
       : Args extends [first?: infer Arg, ...i: infer Rest]
         ? OmitX<ToRemove, Rest, [...Remain, Arg]>
@@ -63,7 +63,7 @@ declare type Try<A1 extends any, A2 extends any, Catch = never> = A1 extends A2 
 export declare type CustomNarrow<A extends any> = Try<A, [], CustomNarrowRaw<A>>
 
 export type MergeStates<
-  ToMerge extends readonly StateBehaviorBuilder[],
+  ToMerge extends readonly any[],
   Final extends StateBehavior = StateBehavior,
   Start extends boolean = false
 > = ToMerge extends []
@@ -86,3 +86,24 @@ export type WebserverBehaviorPositionIterable = Iterable<{
   x: number
   y: number
 }>
+
+
+type U2I<U> = (
+  U extends U ? (arg: U) => 0 : never
+) extends (arg: infer I) => 0
+  ? I
+  : never
+
+// For homogeneous unions, it picks the last member
+type OneOf<U> = U2I<
+  U extends U ? (x: U) => 0 : never
+> extends (x: infer L) => 0
+  ? L
+  : never
+
+export type U2T<U, L = OneOf<U>> = [U] extends [never]
+  ? []
+  : [...U2T<Exclude<U, L>>, L]
+
+export type ListType<L> = L extends (infer R)[] ? R : never 
+
