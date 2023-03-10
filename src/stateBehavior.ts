@@ -2,7 +2,7 @@ import type { Bot, Player } from 'mineflayer'
 import type { Entity } from 'prismarine-entity'
 import type { Vec3 } from 'vec3'
 import type { Item } from 'prismarine-item'
-import { CustomNarrow, HasArgs, OmitX, StateBehaviorBuilder, StateConstructorArgs } from './util'
+import { CustomNarrow, HasConstructArgs, OmitX, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
 /**
  * A collection of targets which the bot is currently
@@ -20,9 +20,11 @@ export interface StateMachineData {
   positions?: Vec3[]
   items?: Item[]
   players?: Player[]
+
+  [key: string]: any
 }
 
-export abstract class StateBehavior {
+export class StateBehavior {
   /**
    * Name displayed on the webserver.
    */
@@ -56,7 +58,7 @@ export abstract class StateBehavior {
   /**
    * Called when the bot enters this behavior state.
    */
-  onStateEntered (): void {}
+  onStateEntered (...args: any[]): void {}
 
   /**
    * Called each tick to update this behavior.
@@ -75,9 +77,6 @@ export abstract class StateBehavior {
     return false
   }
 
-  /**
-   * Args is a compatibility hack here. Don't like it, but whatever.
-   */
   constructor (bot: Bot, data: StateMachineData) {
     this.bot = bot
     this.data = data
@@ -123,11 +122,11 @@ export function clone<T extends StateBehaviorBuilder> (this: T, name?: string): 
  * @returns
  */
 export function transform<
-  T extends StateBehaviorBuilder,
+  T extends StateBehaviorBuilder<StateBehavior, any[]>,
   Args extends CustomNarrow<Partial<StateConstructorArgs<T>>>,
-  Len extends Exclude<Args['length'], undefined>,
+  Len extends Args['length'] extends number ? Args['length'] : never
 > (
-  this: HasArgs<T>,
+  this: HasConstructArgs<T>,
   name: string,
   defaultArgs: Args
   // @ts-expect-error This exception catch is because this type definition is technically infinite.

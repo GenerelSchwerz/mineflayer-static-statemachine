@@ -1,8 +1,8 @@
 // Create your bot
 
 if (process.argv.length < 4 || process.argv.length > 6) {
-    console.log("Usage : node lookatplayers.js <host> <port> [<name>] [<password>]");
-    process.exit(1);
+  console.log("Usage : node lookatplayers.js <host> <port> [<name>] [<password>]");
+  process.exit(1);
 }
 
 import mineflayer from "mineflayer";
@@ -18,12 +18,7 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
 // Import required structures.
-import {
-  BotStateMachine,
-  buildTransition,
-  buildNestedMachine,
-  StateBehavior
-} from "../../src";
+import { BotStateMachine, getTransition, buildNestedMachine, StateMachineWebserver } from "../../src";
 
 // Import required behaviors.
 import {
@@ -33,90 +28,103 @@ import {
   BehaviorFindEntity as FindEntity,
   BehaviorLookAtEntity as LookAtTarget,
   BehaviorFollowEntity as FollowEntity,
-  BehaviorFollowEntity,
+  BehaviorEquipItem,
 } from "../../src/behaviors";
+import { getNestedMachine } from "../../src/builders";
 
-console.log(StateBehavior)
-
-const FindPlayer = FindEntity.transform("FindPlayer", [undefined])
-const CustomFollowEntity = FollowEntity.transform("FollowPlayer", [{followDistance: 2}])
-
+const FindPlayer = FindEntity.transform("FindPlayer", [e=>e.type === "player"]);
+const CustomFollowEntity = FollowEntity.transform("FollowPlayer", [{ followDistance: 2 }]);
 
 const comeToMeTransitions = [
-  buildTransition("findToExit", FindPlayer, Exit)
-    .setShouldTransition(state => !state.foundEntity())
-    .setOnTransition(() => bot.chat('Failed to find entity!')),
+  getTransition("findToExit", FindPlayer, Exit)
+    .setShouldTransition((state) => !state.foundEntity())
+    .setOnTransition(() => bot.chat("Failed to find entity!"))
+    .build(),
 
-  buildTransition("findToFollow", FindPlayer, CustomFollowEntity)
-    .setShouldTransition(state => state.foundEntity())
-    .setOnTransition(() => bot.chat('Found entity!')),
+  getTransition("findToFollow", FindPlayer, CustomFollowEntity)
+    .setShouldTransition((state) => state.foundEntity())
+    .setOnTransition(() => bot.chat("Found entity!"))
+    .build(),
 
-  buildTransition('followToExit', CustomFollowEntity, Exit)
-    .setShouldTransition(state => state.isFinished())
-    .setOnTransition(() => bot.chat('Reached goal, finishing!'))
-]
-
-const comeMachine = buildNestedMachine('comeToMe', comeToMeTransitions, FindPlayer, Exit);
+  getTransition("followToExit", CustomFollowEntity, Exit)
+    .setShouldTransition((state) => state.isFinished())
+    .setOnTransition(() => bot.chat("Reached goal, finishing!"))
+    .build(),
+];
+const comeMachine = getNestedMachine('comeToMe', comeToMeTransitions, FindPlayer, Exit).build();
 
 const followAndLookTransitions = [
   // trigger this to exit the state machine.
-  buildTransition('wildcardExit', Wildcard, Exit),
+  getTransition("wildcardExit", Wildcard, Exit).build(),
 
-  buildTransition("findToExit", FindPlayer, Exit)
-    .setShouldTransition(state => !state.foundEntity())
-    .setOnTransition(() => bot.chat('Failed to find entity!')),
+  getTransition("findToExit", FindPlayer, Exit)
+    .setShouldTransition((state) => !state.foundEntity())
+    .setOnTransition(() => bot.chat("Failed to find entity!"))
+    .build(),
 
-  buildTransition("findToLook", FindPlayer, LookAtTarget)
-    .setShouldTransition(state => state.foundEntity())
-    .setOnTransition(() => bot.chat('Found entity!')),
+  getTransition("findToLook", FindPlayer, LookAtTarget)
+    .setShouldTransition((state) => state.foundEntity())
+    .setOnTransition(() => bot.chat("Found entity!"))
+    .build(),
 
-  buildTransition("lookToFollow", LookAtTarget, CustomFollowEntity)
-    .setShouldTransition(state => state.distanceToTarget() > 2)
-    .setOnTransition(() => bot.chat('Found entity!')),
+  getTransition("lookToFollow", LookAtTarget, CustomFollowEntity)
+    .setShouldTransition((state) => state.distanceToTarget() > 2)
+    .setOnTransition(() => bot.chat("Found entity!"))
+    .build(),
 
-  buildTransition("followToLook", CustomFollowEntity, LookAtTarget)
-    .setShouldTransition(state => state.distanceToTarget() <= 2)
-    .setOnTransition(() => bot.chat('Found entity!')),
+  getTransition("followToLook", CustomFollowEntity, LookAtTarget)
+    .setShouldTransition((state) => state.distanceToTarget() <= 2)
+    .setOnTransition(() => bot.chat("Found entity!"))
+    .build(),
 
-  // new multiple transitions, strongly typed! (W.I.P.)
-  buildTransition('followingTooFar', [CustomFollowEntity, LookAtTarget], Exit)
-    .setShouldTransition(state => state.distanceToTarget() > 32)
+  // new multiple transitions, strongly typed!
+  getTransition("followingTooFar", [CustomFollowEntity, LookAtTarget], Exit)
+    .setShouldTransition((state) => state.distanceToTarget() > 32)
+    .build(),
+];
 
-]
-
-
-const followMachine = buildNestedMachine('followAndLook', followAndLookTransitions, FindPlayer, Exit)
-
+const followMachine = getNestedMachine("followAndLook", followAndLookTransitions, FindPlayer).build()
 
 const rootTransitions = [
-  buildTransition('come', Idle, comeMachine)
-    .setOnTransition(() => bot.chat('coming')),
+  getTransition("wildcard", Wildcard, Idle)
+    .setShouldTransition((state) => state.isFinished())
+    .build(),
 
-  buildTransition('follow', Idle, followMachine)
-    .setOnTransition(() => bot.chat('Following'))
-]
+  getTransition("come", Idle, comeMachine)
+    .setOnTransition(() => bot.chat("coming"))
+    .build(),
 
+  getTransition("follow", Idle, followMachine)
+    .setOnTransition(() => bot.chat("Following"))
+    .build(),
 
+  getTransition("equip", Idle, BehaviorEquipItem).setEntryArgs("sword", "hand").build(),
+];
 
 // Now we just wrap our transition list in a nested state machine layer. We want the bot
 // to start on the getClosestPlayer state, so we'll specify that here.
 // We can specify entry arguments to our entry class here as well.
-const root = buildNestedMachine("rootLayer", rootTransitions, Idle);
+const root = getNestedMachine("rootLayer", rootTransitions, Idle).build();
 
 // We can start our state machine simply by creating a new instance.
 // We can delay the start of our machine by using autoStart: false
-const machine = new BotStateMachine({ bot, root, autoStart: false });
+const machine = new BotStateMachine({
+  bot,
+  root,
+  autoStart: false,
+});
+
+const webserver = new StateMachineWebserver({ stateMachine: machine });
+webserver.startServer();
 
 // Start the machine anytime using <name>.start()
 bot.once("spawn", () => {
-  machine.start()
+  machine.start();
 
-  bot.on('chat', (user, message) => {
-    const [cmd] = message.trim().split(' ')
-    if (cmd === 'come') rootTransitions[0].trigger()
-    if (cmd === 'follow') rootTransitions[1].trigger()
-  })
+  bot.on("chat", (user, message) => {
+    const [cmd] = message.trim().split(" ");
+    if (cmd === "come") rootTransitions[1].trigger();
+    if (cmd === "follow") rootTransitions[2].trigger();
+    if (cmd === "equip") rootTransitions[3].trigger();
+  });
 });
-
-
-
