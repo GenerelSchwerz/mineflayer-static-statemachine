@@ -149,17 +149,16 @@ export class StateMachineWebserver {
 
     if (this.lastMachine != null && this.lastState != null) this.updateClient(socket, this.lastMachine, this.lastState)
 
-    const updateClient = (
-      type: typeof NestedStateMachine,
-      nestedMachine: NestedStateMachine,
-      state: StateBehaviorBuilder
-    ): void => this.updateClient(socket, type, state)
+    const updateClient = (type: typeof NestedStateMachine, _: NestedStateMachine, state: StateBehaviorBuilder): void =>
+      this.updateClient(socket, type, state)
+
+    const clearClient = (type: typeof NestedStateMachine): void => this.updateClient(socket, type, undefined)
     this.stateMachine.on('stateEntered', updateClient)
-    this.stateMachine.on('stateExited', updateClient)
+    this.stateMachine.on('stateExited', clearClient)
 
     socket.on('disconnect', () => {
       this.stateMachine.removeListener('stateEntered', updateClient)
-      this.stateMachine.removeListener('stateExited', updateClient)
+      this.stateMachine.removeListener('stateExited', clearClient)
 
       console.log(`Client ${socket.handshake.address} disconnected from webserver.`)
     })
@@ -179,9 +178,17 @@ export class StateMachineWebserver {
     socket.emit('connected', packet)
   }
 
-  private updateClient (socket: Socket, nested: typeof NestedStateMachine, state: StateBehaviorBuilder): void {
-    const activeStates: number[] = []
+  private updateClient (
+    socket: Socket,
+    nested: typeof NestedStateMachine,
+    state: StateBehaviorBuilder | undefined
+  ): void {
+    if (state == null) {
+      socket.emit('stateChanged', { activeStates: [] })
+      return
+    }
 
+    const activeStates: number[] = []
     const index = this.getStateId(state, nested)
 
     if (index > -1) {
@@ -290,7 +297,7 @@ export class StateMachineWebserver {
       nestGroups.push({
         id: i,
         enter: this.getStateId(machine.enter, machine),
-        exits: machine.exits != null ? machine.exits.map(exit => this.getStateId(exit, machine)) : undefined,
+        exits: machine.exits != null ? machine.exits.map((exit) => this.getStateId(exit, machine)) : undefined,
         indent: depth,
         name: machine.stateName
       })
