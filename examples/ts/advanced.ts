@@ -18,7 +18,7 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
 // Import required structures.
-import { BotStateMachine, getTransition, buildNestedMachine, StateMachineWebserver } from "../../src";
+import { BotStateMachine, getTransition, buildNestedMachine, StateMachineWebserver, WebserverBehaviorPositions } from "../../src";
 
 // Import required behaviors.
 import {
@@ -106,6 +106,25 @@ const rootTransitions = [
 // We can specify entry arguments to our entry class here as well.
 const root = getNestedMachine("rootLayer", rootTransitions, Idle).build();
 
+
+const offsets = new WebserverBehaviorPositions()
+  // comeMachine
+  .set(FindPlayer, 100, 350, comeMachine)
+  .set(CustomFollowEntity, 350, 350, comeMachine)
+  .set(Exit, 600, 350, comeMachine)
+  // followMachine
+  .set(Wildcard, 350, 650, followMachine)
+  .set(Exit, 350, 350, followMachine)
+  .set(FindPlayer, 350, 50, followMachine)
+  .set(LookAtTarget, 100, 200, followMachine)
+  .set(CustomFollowEntity, 100, 500, followMachine)
+  // rootMachine
+  .set(Idle, 350, 350, root)
+  .set(Wildcard, 350, 50, root)
+  .set(followMachine, 100, 600, root)
+  .set(comeMachine, 600, 600, root)
+ 
+
 // We can start our state machine simply by creating a new instance.
 // We can delay the start of our machine by using autoStart: false
 const machine = new BotStateMachine({
@@ -114,7 +133,7 @@ const machine = new BotStateMachine({
   autoStart: false,
 });
 
-const webserver = new StateMachineWebserver({ stateMachine: machine });
+const webserver = new StateMachineWebserver({ stateMachine: machine, presetPositions: offsets });
 webserver.startServer();
 
 // Start the machine anytime using <name>.start()

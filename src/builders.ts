@@ -173,8 +173,10 @@ function build1<This extends NestedMachineBuilder<any, any, any, true, true>> (
 
   states.push(this.enter)
 
-  for (const exit of this.exits) {
-    if (!states.includes(exit)) states.push(exit)
+  if (this.exits != null) {
+    for (const exit of this.exits) {
+      if (!states.includes(exit)) states.push(exit)
+    }
   }
 
   for (let i = 0; i < this.transitions.length; i++) {
