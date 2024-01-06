@@ -31,6 +31,7 @@ import {
   BehaviorEquipItem,
 } from "../../src/behaviors";
 import { getNestedMachine } from "../../src/builders";
+import { StateBehaviorBuilder } from "../../src/util";
 
 const FindPlayer = FindEntity.transform("FindPlayer", [e=>e.type === "player"]);
 const CustomFollowEntity = FollowEntity.transform("FollowPlayer", [{ followDistance: 2 }]);

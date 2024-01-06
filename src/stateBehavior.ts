@@ -58,7 +58,7 @@ export class StateBehavior {
   /**
    * Called when the bot enters this behavior state.
    */
-  onStateEntered (...args: any[]): void {}
+  onStateEntered (...args: any[]): void | Promise<void> {}
 
   /**
    * Called each tick to update this behavior.
@@ -68,7 +68,7 @@ export class StateBehavior {
   /**
    * Called when the bot leaves this behavior state.
    */
-  onStateExited? (): void {}
+  onStateExited (): void | Promise<void> {}
 
   /**
    * Called if the behavior is anonymous per tick, checks if task is complete.
