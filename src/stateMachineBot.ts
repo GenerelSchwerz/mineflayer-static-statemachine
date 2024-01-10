@@ -66,11 +66,24 @@ export class BotStateMachine<
     if (this.root.active) throw Error('Root already started! No need to start again.')
     this.root.active = true
     this._activeMachine = this.rootType
-    this.root.onStateEntered()
+    void this.root.onStateEntered()
 
     if (!this.bot.listeners('physicsTick').includes(this.update) && autoUpdate) {
       this.bot.on('physicsTick', this.update)
       this.autoUpdate = true
+    }
+  }
+
+  public stop (): void {
+    if (!this.root.active) throw Error('Root is already stopped.')
+    if (!this.autoUpdate) throw Error('State machines are manually updated, stopping does not guarentee exiting.')
+    this.root.active = false
+    this._activeMachine = undefined
+    void this.root.onStateExited()
+
+    if (this.bot.listeners('physicsTick').includes(this.update)) {
+      this.bot.off('physicsTick', this.update)
+      this.autoUpdate = false
     }
   }
 

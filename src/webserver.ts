@@ -5,6 +5,9 @@ import express from 'express'
 import httpLoader from 'http'
 import { isNestedStateMachine, StateBehaviorBuilder, WebserverBehaviorPositionIterable } from './util'
 
+import type { Express } from 'express'
+import EventEmitter from 'events'
+
 const publicFolder = './../web'
 
 // provide positioning for both specific-to-machine states and globally as a backup.
@@ -32,10 +35,7 @@ export class WebserverBehaviorPositions {
     return !(this.storage[state.name + state.stateName] == null)
   }
 
-  public get (
-    state: StateBehaviorBuilder,
-    parentMachine?: typeof NestedStateMachine
-  ): { x: number | undefined, y: number | undefined } {
+  public get (state: StateBehaviorBuilder, parentMachine?: typeof NestedStateMachine): { x: number | undefined, y: number | undefined } {
     if (!this.has(state, parentMachine)) return { x: undefined, y: undefined }
     if (parentMachine != null) {
       return (
@@ -70,15 +70,19 @@ export class WebserverBehaviorPositions {
  * A web server which allows users to view the current state of the
  * bot behavior state machine.
  */
-export class StateMachineWebserver {
+export class StateMachineWebserver extends EventEmitter {
   private serverRunning: boolean = false
 
-  readonly stateMachine: BotStateMachine<any, any>
   readonly presetPositions?: WebserverBehaviorPositions
   readonly port: number
 
   private lastMachine: typeof NestedStateMachine | undefined
   private lastState: StateBehaviorBuilder | undefined
+
+  private _stateMachine?: BotStateMachine<any, any>
+  private readonly _app?: Express
+  private _http?: httpLoader.Server<typeof httpLoader.IncomingMessage, typeof httpLoader.ServerResponse>
+  private readonly _io?: socketLoader.Server
 
   /**
    * Creates and starts a new webserver.
@@ -90,15 +94,51 @@ export class StateMachineWebserver {
     presetPositions,
     port = 8934
   }: {
-    stateMachine: BotStateMachine<any, any>
+    stateMachine?: BotStateMachine<any, any>
     presetPositions?: WebserverBehaviorPositions
     port?: number
   }) {
-    this.stateMachine = stateMachine
+    super()
+    this._stateMachine = stateMachine
     this.port = port
     this.presetPositions = presetPositions
     this.lastMachine = undefined
     this.lastState = undefined
+
+    this._app = express()
+    this._app.use('/web', express.static(path.join(__dirname, publicFolder)))
+    this._app.get('/', (req, res) => res.sendFile(path.join(__dirname, publicFolder, 'index.html')))
+  }
+
+  /**
+   * Accessor for the express app.
+   */
+  public get app (): Express {
+    if (this._app == null) throw new Error('App is not instantiated!')
+    return this._app
+  }
+
+  /**
+   * Accessor for the http server.
+   */
+  public get http (): httpLoader.Server<typeof httpLoader.IncomingMessage, typeof httpLoader.ServerResponse> {
+    if (this._http == null) throw new Error('Http is not instantiated!')
+    return this._http
+  }
+
+  /**
+   * Accessor for the socket.io server.
+   */
+  public get io (): socketLoader.Server {
+    if (this._io == null) throw new Error('Socket is not instantiated!')
+    return this._io
+  }
+
+  /**
+   * Accessor for the state machine being observed.
+   */
+  public get stateMachine (): BotStateMachine<any, any> | undefined {
+    return this._stateMachine
   }
 
   /**
@@ -118,18 +158,34 @@ export class StateMachineWebserver {
 
     this.serverRunning = true
 
-    const app = express()
-    app.use('/web', express.static(path.join(__dirname, publicFolder)))
-    app.get('/', (req, res) => res.sendFile(path.join(__dirname, publicFolder, 'index.html')))
-
-    const http = httpLoader.createServer(app)
+    this._http = httpLoader.createServer(this._app)
 
     // @ts-expect-error ; Why? Not sure. Probably a type-def loading issue. Either way, it's safe.
-    const io = socketLoader(http)
+    this.io = socketLoader(http)
 
-    io.on('connection', (socket: Socket) => this.onConnected(socket))
+    this.io.on('connection', (socket: Socket) => this.onConnected(socket))
 
-    http.listen(this.port, () => this.onStarted())
+    this._http.listen(this.port, () => this.onStarted())
+  }
+
+  /**
+   * Stops the web server.
+   */
+  stopServer (): void {
+    if (!this.serverRunning) {
+      throw new Error('Server already stopped!')
+    }
+
+    this.serverRunning = false
+
+    // also closes the http server.
+    this.io.close()
+    setImmediate(this.onStopped.bind(this))
+  }
+
+  loadStateMachine (stateMachine: BotStateMachine<any, any>): void {
+    this._stateMachine = stateMachine
+    this.emit('switchedRoot', stateMachine)
   }
 
   /**
@@ -140,27 +196,63 @@ export class StateMachineWebserver {
   }
 
   /**
+   * Called when stopping the web server.
+   */
+  private onStopped (): void {
+    console.log(`Stopped state machine web server at http://localhost:${this.port}.`)
+  }
+
+  /**
    * Called when a web socket connects to this server.
    */
   private onConnected (socket: Socket): void {
     console.log(`Client ${socket.handshake.address} connected to webserver.`)
 
+    this.http.once('close', () => socket.disconnect())
+
+    this.initStateMachineData(socket)
+
+    if (this.stateMachine == null) return
+    this.applyStateMachineListenersToSocket(socket, this.stateMachine)
+  }
+
+  /**
+   * Send packet to client with the current state machine structure.
+   */
+  private initStateMachineData (socket: Socket): void {
+    if (this.stateMachine === undefined) {
+      this.sendBlankStructure(socket)
+      return
+    }
+
     this.sendStatemachineStructure(socket)
-
     if (this.lastMachine != null && this.lastState != null) this.updateClient(socket, this.lastMachine, this.lastState)
+  }
 
+  /**
+   * Applies listeners to a socket.
+   */
+  private applyStateMachineListenersToSocket (socket: Socket, stateMachine: BotStateMachine<any, any>): void {
     const updateClient = (type: typeof NestedStateMachine, _: NestedStateMachine, state: StateBehaviorBuilder): void =>
       this.updateClient(socket, type, state)
 
     const clearClient = (type: typeof NestedStateMachine): void => this.updateClient(socket, type, undefined)
-    this.stateMachine.on('stateEntered', updateClient)
-    this.stateMachine.on('stateExited', clearClient)
+    stateMachine.on('stateEntered', updateClient)
+    stateMachine.on('stateExited', clearClient)
 
-    socket.on('disconnect', () => {
-      this.stateMachine.removeListener('stateEntered', updateClient)
-      this.stateMachine.removeListener('stateExited', clearClient)
+    socket.once('disconnect', () => {
+      stateMachine.removeListener('stateEntered', updateClient)
+      stateMachine.removeListener('stateExited', clearClient)
 
       console.log(`Client ${socket.handshake.address} disconnected from webserver.`)
+    })
+
+    this.once('switchedRoot', (newMachine) => {
+      stateMachine.removeListener('stateEntered', updateClient)
+      stateMachine.removeListener('stateExited', clearClient)
+      this.applyStateMachineListenersToSocket(socket, newMachine)
+
+      console.log(`Client ${socket.handshake.address} was removed from stateMachine due to switch.`)
     })
   }
 
@@ -175,14 +267,20 @@ export class StateMachineWebserver {
       nestGroups
     }
 
-    socket.emit('connected', packet)
+    socket.emit('loadMachine', packet)
   }
 
-  private updateClient (
-    socket: Socket,
-    nested: typeof NestedStateMachine,
-    state: StateBehaviorBuilder | undefined
-  ): void {
+  private sendBlankStructure (socket: Socket): void {
+    const packet: StateMachineStructurePacket = {
+      states: [],
+      transitions: [],
+      nestGroups: []
+    }
+
+    socket.emit('loadMachine', packet)
+  }
+
+  private updateClient (socket: Socket, nested: typeof NestedStateMachine, state: StateBehaviorBuilder | undefined): void {
     if (state == null) {
       socket.emit('stateChanged', { activeStates: [] })
       return
@@ -220,7 +318,8 @@ export class StateMachineWebserver {
   private getStateId (
     state: typeof StateBehavior,
     targetMachine: typeof NestedStateMachine,
-    searching: typeof NestedStateMachine = this.stateMachine.rootType,
+    // eslint-disable-next-line
+    searching: typeof NestedStateMachine = this.stateMachine!.rootType,
     data = { offset: 0 }
   ): number {
     for (let i = 0; i < searching.states.length; i++) {
@@ -242,8 +341,10 @@ export class StateMachineWebserver {
   // Don't mind this stupid object -> pointer hack.
   // note: this matches the pattern found locally.
   // note: slight speedup possible by passing array by pointers as well.
+
   private getStates (
-    nested: typeof NestedStateMachine = this.stateMachine.rootType,
+    // eslint-disable-next-line
+    nested: typeof NestedStateMachine = this.stateMachine!.rootType,
     data = { index: 0, offset: 0 },
     offset = 0
   ): StateMachineStatePacket[] {
@@ -266,8 +367,9 @@ export class StateMachineWebserver {
   }
 
   private getTransitions (): StateMachineTransitionPacket[] {
-    const transitions: StateMachineTransitionPacket[] = []
+    if (this.stateMachine == null) return []
 
+    const transitions: StateMachineTransitionPacket[] = []
     for (let i = 0; i < this.stateMachine.nestedMachinesHelp.length; i++) {
       const machine = this.stateMachine.nestedMachinesHelp[i]
       const foundTransitions = machine.transitions
@@ -289,6 +391,8 @@ export class StateMachineWebserver {
   }
 
   private getNestGroups (): NestedStateMachinePacket[] {
+    if (this.stateMachine == null) return []
+
     const nestGroups: NestedStateMachinePacket[] = []
 
     for (let i = 0; i < this.stateMachine.nestedMachinesHelp.length; i++) {

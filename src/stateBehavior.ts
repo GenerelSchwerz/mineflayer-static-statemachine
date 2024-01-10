@@ -90,8 +90,8 @@ export class StateBehavior {
  * @param name
  * @returns
  */
-export function clone<T extends StateBehaviorBuilder> (this: T, name?: string): T {
-  const ToBuild = class ClonedState extends this.prototype.constructor {}
+export function clone<T extends StateBehaviorBuilder> (this: T, name: string): T {
+  const ToBuild = ({[name]: class extends this.prototype.constructor {}})[name]
   Object.getOwnPropertyNames(this.prototype).forEach((name) => {
     Object.defineProperty(
       ToBuild.prototype,
@@ -108,7 +108,7 @@ export function clone<T extends StateBehaviorBuilder> (this: T, name?: string): 
   })
 
   // console.log(ToBuild, this);
-  if (name != null) ToBuild.stateName = name
+  if (name != null) (ToBuild as any).stateName = name
   return ToBuild as unknown as T
 }
 
@@ -131,11 +131,13 @@ export function transform<
   defaultArgs: Args
   // @ts-expect-error This exception catch is because this type definition is technically infinite.
 ): StateBehaviorBuilder<InstanceType<T>, OmitX<Len, StateConstructorArgs<T>>> {
-  const ToBuild = class ClonedState extends this.prototype.constructor {
-    constructor (bot: Bot, data: StateMachineData, ...additional: OmitX<Len, StateConstructorArgs<T>>) {
-      super(bot, data, ...(defaultArgs as any), ...(additional as any))
+  const ToBuild = ({
+    [name]: class extends this.prototype.constructor {
+      constructor (bot: Bot, data: StateMachineData, ...additional: OmitX<Len, StateConstructorArgs<T>>) {
+        super(bot, data, ...(defaultArgs as any), ...(additional as any))
+      }
     }
-  }
+  })[name] // this might work.
 
   Object.getOwnPropertyNames(this.prototype).forEach((name) => {
     Object.defineProperty(
@@ -152,7 +154,7 @@ export function transform<
     }
   })
 
-  if (name != null) ToBuild.stateName = name
+  if (name != null) (ToBuild as any).stateName = name
 
   // we enforce this typing at runtime, so no need to specify "as T" (as it technically isnt)
   return ToBuild as unknown as any

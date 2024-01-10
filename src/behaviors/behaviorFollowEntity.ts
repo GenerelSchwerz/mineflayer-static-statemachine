@@ -15,7 +15,7 @@ export class BehaviorFollowEntity extends StateBehavior {
 
   constructor (bot: Bot, data: StateMachineData, options?: { movements?: Movements, followDistance?: number }) {
     super(bot, data)
-    this.movements = options?.movements ?? new Movements(bot, bot.registry)
+    this.movements = options?.movements ?? new Movements(bot)
     this.followDistance = options?.followDistance ?? 2
   }
 

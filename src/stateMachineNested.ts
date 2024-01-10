@@ -47,6 +47,8 @@ export class NestedStateMachine
   public readonly data: StateMachineData
   public active: boolean = false
 
+  private _exitState?: StateBehavior
+
   public constructor (bot: Bot, data: StateMachineData) {
     // eslint-disable-next-line constructor-super
     super()
@@ -83,22 +85,36 @@ export class NestedStateMachine
     return this._activeState
   }
 
-  public onStateEntered (): void {
+  /**
+   * Getter
+   */
+  public get exitState (): StateBehavior | undefined {
+    return this._exitState
+  }
+
+  public onStateEntered (): void | Promise<void> {
+    this._exitState = undefined
     this._activeStateType = this.staticRef.enter
     this.enterState(this._activeStateType, this.bot, this.staticRef.enterArgs)
   }
 
-  public onStateExited (): void {
+  public onStateExited (): void | Promise<void> {
     this.exitActiveState()
     this._activeStateType = undefined
+    this._exitState = this._activeState
     this._activeState = undefined
   }
 
-  protected enterState (EnterState: StateBehaviorBuilder<StateBehavior, any[]>, bot: Bot, constructorArgs: any[] = [], entryArgs: any[] = []): void {
+  protected enterState (
+    EnterState: StateBehaviorBuilder<StateBehavior, any[]>,
+    bot: Bot,
+    constructorArgs: any[] = [],
+    entryArgs: any[] = []
+  ): void {
     this._activeState = new EnterState(bot, this.data, ...constructorArgs)
     this._activeState.active = true
     this.emit('stateEntered', this, EnterState, this.data)
-    this._activeState.onStateEntered?.(...entryArgs)
+    void this._activeState.onStateEntered?.(...entryArgs)
     this._activeState.update?.()
   }
 
@@ -107,7 +123,7 @@ export class NestedStateMachine
     if (this._activeState == null) return
     this._activeState.active = false
     this.emit('stateExited', this, this._activeStateType, this.data)
-    this._activeState.onStateExited?.()
+    void this._activeState.onStateExited?.()
   }
 
   public update (): void {
@@ -117,8 +133,12 @@ export class NestedStateMachine
     this._activeState.update?.()
     const transitions = this.staticRef.transitions
     for (let i = 0; i < transitions.length; i++) {
+      if (i === 0 && this.isFinished()) return
       const transition = transitions[i]
-      if ((this._activeStateType != null && transition.parentStates.includes(this._activeStateType)) || transition.parentStates.includes(BehaviorWildcard)) {
+      if (
+        (this._activeStateType != null && transition.parentStates.includes(this._activeStateType)) ||
+        (transition.parentStates.includes(BehaviorWildcard) && this._activeStateType !== transition.childState)
+      ) {
         if (transition.isTriggered() || transition.shouldTransition(this._activeState as any)) {
           transition.resetTrigger()
           i = -1

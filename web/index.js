@@ -506,17 +506,18 @@ function init () {
   nestedGroups = []
 
   const socket = io()
-  socket.on('connected', packet => onConnected(packet))
+  socket.on('loadMachine', packet => onLoadMachine(packet))
   socket.on('stateChanged', packet => onStateChanged(packet))
 }
 
-function onConnected (packet) {
-  console.log('Bot connected.')
+function onLoadMachine (packet) {
+  console.log('bot machine loaded.')
 
   graph.clear()
   loadNestedGroups(packet)
   loadStates(packet)
   loadTransitions(packet)
+  reprintNestedGroups([])
   graph.repaint = true
 }
 
