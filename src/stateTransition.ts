@@ -1,5 +1,5 @@
 import { StateMachineData } from './stateBehavior'
-import { HasConstructArgs, MergeStates, OnEnterArgs, StateBehaviorBuilder, StateConstructorArgs } from './util'
+import { HasConstructArgs, MergeStates, OnEnterArgs, RuntimeEnterFn, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
 /**
  * The parameters for initializing a state transition.
@@ -15,6 +15,7 @@ export interface StateTransitionInfo<
   name?: string
   shouldTransition?: (state: MergeStates<Parents>) => boolean
   onTransition?: (data: StateMachineData) => void
+  runtimeEnterFn?: (state: MergeStates<Parents>) => OnEnterArgs<Child>
 }
 
 /**
@@ -32,6 +33,7 @@ export class StateTransition<
   private triggerState: boolean = false
   shouldTransition: (state: MergeStates<Parents>) => boolean
   onTransition: (data: StateMachineData) => void
+  runtimeEnterFn?: RuntimeEnterFn<Parents, Child>
   name?: string
 
   constructor ({
@@ -71,6 +73,11 @@ export class StateTransition<
 
   setOnTransition (onTrans: (data: StateMachineData) => void): this {
     this.onTransition = onTrans
+    return this
+  }
+
+  setRuntimeEnterFn (fn: RuntimeEnterFn<Parents, Child>): this {
+    this.runtimeEnterFn = fn
     return this
   }
 }

@@ -17,15 +17,10 @@ import {
 type ConstructorArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> = HasConstructArgs<State> extends State
   ? StateConstructorArgs<State>
   : never
-type EntryArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> = HasEnterArgs<State> extends State
-  ? OnEnterArgs<State>
-  : never
+type EntryArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> = HasEnterArgs<State> extends State ? OnEnterArgs<State> : never
 
-type IgnoreConstructorArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> =
-  NoConstructArgs<State> extends never ? false : true
-type IgnoreEntryArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> = NoEnterArgs<State> extends never
-  ? false
-  : true
+type IgnoreConstructorArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> = NoConstructArgs<State> extends never ? false : true
+type IgnoreEntryArgs<State extends StateBehaviorBuilder<StateBehavior, any[]>> = NoEnterArgs<State> extends never ? false : true
 
 class StateTransitionBuilder<
   Parents extends ReadonlyArray<StateBehaviorBuilder<StateBehavior, any[]>>,
@@ -41,6 +36,7 @@ class StateTransitionBuilder<
   public constructorArgs?: ConstructorArgs<Child>
   public shouldTransition?: StateTransition<ParsedParents, Child>['shouldTransition']
   public onTransition?: StateTransition<ParsedParents, Child>['onTransition']
+  public runtimeEnterFn?: StateTransition<ParsedParents, Child>['runtimeEnterFn']
 
   private _builtConstructor: BuildArgs = false as any
   private _builtEnter: EnterArgs = false as any
@@ -58,20 +54,22 @@ class StateTransitionBuilder<
     return this._builtEnter
   }
 
-  public setBuildArgs (
-    ...args: ConstructorArgs<Child>
-  ): StateTransitionBuilder<Parents, Child, ParsedParents, true, EnterArgs> {
+  public setBuildArgs (...args: ConstructorArgs<Child>): StateTransitionBuilder<Parents, Child, ParsedParents, true, EnterArgs> {
     this.constructorArgs = args;
     (this as StateTransitionBuilder<Parents, Child, ParsedParents, true, EnterArgs>)._builtConstructor = true
     return this as StateTransitionBuilder<Parents, Child, ParsedParents, true, EnterArgs>
   }
 
   public setEntryArgs (
+    // this: StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, false>,
     ...args: EntryArgs<Child>
   ): StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true> {
-    this.entryArgs = args;
-    (this as StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true>)._builtEnter = true
-    return this as StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true>
+    // if (this._builtEnter as boolean) throw new Error('Cannot set runtime enter function after entry args have been set.');
+
+    (this as unknown as StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true>)._builtEnter = true
+    this.entryArgs = args
+
+    return this as unknown as StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true>
   }
 
   public setShouldTransition (should: StateTransition<ParsedParents, Child>['shouldTransition']): this {
@@ -84,34 +82,50 @@ class StateTransitionBuilder<
     return this
   }
 
+  public setRuntimeEnterFn (
+    // this: StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, false>,
+    enter: StateTransition<ParsedParents, Child>['runtimeEnterFn']
+  ): StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true> {
+    // if (this._builtEnter as boolean) throw new Error('Cannot set runtime enter function after entry args have been set.');
+
+    (this as unknown as StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true>)._builtEnter = true
+    this.runtimeEnterFn = enter
+
+    return this as unknown as StateTransitionBuilder<Parents, Child, ParsedParents, BuildArgs, true>
+  }
+
   public build = build
 }
 
 function build<This extends StateTransitionBuilder<any, any, any, true, true>> (
   this: This
 ): StateTransition<U2T<ListType<This['parents']>>, This['child']> {
-  return new StateTransition<typeof this['parents'], typeof this['child']>({
+  return new StateTransition<(typeof this)['parents'], (typeof this)['child']>({
     parents: this.parents,
     child: this.child,
     constructorArgs: this.constructorArgs as any,
     enterArgs: this.entryArgs as any,
     shouldTransition: this.shouldTransition,
-    onTransition: this.onTransition
+    onTransition: this.onTransition,
+    runtimeEnterFn: this.runtimeEnterFn as any
   })
 }
 
-export function getTransition<
-  Parent extends StateBehaviorBuilder<any, any[]>,
-  Child extends StateBehaviorBuilder<any, any[]>
-> (name: string, parent: Parent, child: Child): StateTransitionBuilder<[Parent], Child>
-export function getTransition<
-  Parents extends readonly StateBehaviorBuilder[],
-  Child extends StateBehaviorBuilder<any, any[]>
-> (name: string, parents: Parents, child: Child): StateTransitionBuilder<Parents, Child>
-export function getTransition<
-  Parents extends readonly StateBehaviorBuilder[],
-  Child extends StateBehaviorBuilder<any, any[]>
-> (name: string, parents: Parents, child: Child): StateTransitionBuilder<Parents, Child> {
+export function getTransition<Parent extends StateBehaviorBuilder<any, any[]>, Child extends StateBehaviorBuilder<any, any[]>> (
+  name: string,
+  parent: Parent,
+  child: Child
+): StateTransitionBuilder<[Parent], Child>
+export function getTransition<Parents extends readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder<any, any[]>> (
+  name: string,
+  parents: Parents,
+  child: Child
+): StateTransitionBuilder<Parents, Child>
+export function getTransition<Parents extends readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder<any, any[]>> (
+  name: string,
+  parents: Parents,
+  child: Child
+): StateTransitionBuilder<Parents, Child> {
   let realParents: readonly StateBehaviorBuilder[]
   if (!(parents instanceof Array)) realParents = [parents]
   else realParents = parents
@@ -123,17 +137,18 @@ class NestedMachineBuilder<
   Exits extends ReadonlyArray<StateBehaviorBuilder<StateBehavior, any[]>> | undefined = undefined,
   ParsedExits extends U2T<ListType<Exits>> | undefined = undefined,
   BuildArgs = IgnoreConstructorArgs<Enter>,
-  EnterArgs = false
+  EnterArgs = IgnoreEntryArgs<Enter>,
 > {
   public readonly name: string
   public readonly enter: Enter
   public readonly exits: Exits
   public readonly transitions: Array<StateTransition<any, any>>
-  // public entryArgs?: EntryArgs<Enter>;
+  public entryArgs?: EntryArgs<Enter>
   public constructorArgs?: ConstructorArgs<Enter>
 
   private _builtConstructor: BuildArgs = false as any
-  // private _builtEnter: EnterArgs = false as any;
+  private _builtEnter: EnterArgs = false as any
+
   constructor (name: string, transitions: Array<StateTransition<any, any>>, enter: Enter, exits: Exits) {
     this.name = name
     this.transitions = transitions
@@ -145,30 +160,34 @@ class NestedMachineBuilder<
     return this._builtConstructor
   }
 
-  // public get builtEnter(): EnterArgs {
-  //   return this._builtEnter;
-  // }
+  public get builtEnter (): EnterArgs {
+    return this._builtEnter
+  }
 
-  public setBuildArgs (
-    ...args: ConstructorArgs<Enter>
-  ): NestedMachineBuilder<Enter, Exits, ParsedExits, true, EnterArgs> {
+  public setBuildArgs (...args: ConstructorArgs<Enter>): NestedMachineBuilder<Enter, Exits, ParsedExits, true, EnterArgs> {
+    if (this._builtConstructor === true) throw new Error('Cannot set constructor args after they have been set.')
+
     this.constructorArgs = args;
     (this as NestedMachineBuilder<Enter, Exits, ParsedExits, true, EnterArgs>)._builtConstructor = true
     return this as NestedMachineBuilder<Enter, Exits, ParsedExits, true, EnterArgs>
   }
 
-  // public setEntryArgs(...args: EntryArgs<Enter>): NestedMachineBuilder<Enter, Exits, ParsedExits, BuildArgs, true> {
-  //   this.entryArgs = args;
-  //   (this as NestedMachineBuilder<Enter, Exits, ParsedExits, BuildArgs, true>)._builtEnter = true;
-  //   return this as NestedMachineBuilder<Enter, Exits, ParsedExits, BuildArgs, true>;
-  // }
+  public setEntryArgs (...args: EntryArgs<Enter>): NestedMachineBuilder<Enter, Exits, ParsedExits, BuildArgs, true> {
+    if (this._builtEnter as boolean) throw new Error('Cannot set constructor args after entry args have been set.')
+
+    this.entryArgs = args;
+    (this as NestedMachineBuilder<Enter, Exits, ParsedExits, BuildArgs, true>)._builtEnter = true
+    return this as NestedMachineBuilder<Enter, Exits, ParsedExits, BuildArgs, true>
+  }
 
   public build = build1
 }
 
 function build1<This extends NestedMachineBuilder<any, any, any, true, true>> (
   this: This
-): This['exits'] extends undefined ? SpecifcNestedStateMachine<This['enter']> : SpecifcNestedStateMachine<This['enter'], U2T<ListType<This['exits']>>> {
+): This['exits'] extends undefined
+    ? SpecifcNestedStateMachine<This['enter']>
+    : SpecifcNestedStateMachine<This['enter'], U2T<ListType<This['exits']>>> {
   const states: StateBehaviorBuilder[] = []
 
   states.push(this.enter)
@@ -190,13 +209,15 @@ function build1<This extends NestedMachineBuilder<any, any, any, true, true>> (
   const transitions = this.transitions
   const enter = this.enter
   const exits = this.exits
-  const enterArgs = this.constructorArgs as any
+  const enterArgs = this.entryArgs as any
+  const constructorArgs = this.constructorArgs as any
   return class BuiltNestedStateMachine extends NestedStateMachine {
     public static readonly stateName = stateName
     public static readonly transitions = transitions
     public static readonly states = states
     public static readonly enter = enter
     public static readonly enterArgs = enterArgs
+    public static readonly constructorArgs = constructorArgs
     public static readonly exits? = exits
     public static readonly onStartupListeners = []
 
@@ -208,7 +229,7 @@ function build1<This extends NestedMachineBuilder<any, any, any, true, true>> (
 export function getNestedMachine<Enter extends StateBehaviorBuilder> (
   name: string,
   transitions: Array<StateTransition<any, any>>,
-  enter: NoEnterArgs<Enter>,
+  enter: NoEnterArgs<Enter>
 ): NestedMachineBuilder<Enter>
 export function getNestedMachine<Enter extends StateBehaviorBuilder, Exit extends StateBehaviorBuilder> (
   name: string,
@@ -269,10 +290,7 @@ export function buildNestedMachine<Enter extends StateBehaviorBuilder, Exits ext
 /**
  * @deprecated
  */
-export function buildNestedMachine<
-  Enter extends StateBehaviorBuilder,
-  Exits extends StateBehaviorBuilder[] | undefined
-> (
+export function buildNestedMachine<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[] | undefined> (
   stateName: string,
   transitions: Array<StateTransition<any, any>>,
   enter: NoConstructArgs<Enter>,
@@ -325,10 +343,7 @@ export function buildNestedMachineArgs<Enter extends StateBehaviorBuilder, Exits
  * @param stateName Name of state.
  * @returns {typeof NestedStateMachine} A static reference to a new NestedMachine.
  */
-function internalBuildNested<
-  Enter extends StateBehaviorBuilder,
-  Exits extends StateBehaviorBuilder[] | undefined = undefined
-> (
+function internalBuildNested<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[] | undefined = undefined> (
   stateName: string,
   transitions: Array<StateTransition<any, any>>,
   enter: Enter,

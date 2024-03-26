@@ -4,13 +4,14 @@ import { StrictEventEmitter } from 'strict-event-emitter-types'
 import { BehaviorWildcard } from './behaviors'
 import { StateBehavior, clone, transform, StateMachineData } from './stateBehavior'
 import { StateTransition } from './stateTransition'
-import { HasConstructArgs, StateBehaviorBuilder, StateConstructorArgs } from './util'
+import { HasConstructArgs, OnEnterArgs, StateBehaviorBuilder, StateConstructorArgs } from './util'
 
 export interface NestedStateMachineOptions<Enter extends StateBehaviorBuilder, Exits extends readonly StateBehaviorBuilder[] | undefined> {
   stateName: string
   readonly transitions: Array<StateTransition<any, any>>
   readonly enter: Enter
-  readonly enterArgs: HasConstructArgs<Enter> extends Enter ? StateConstructorArgs<Enter> : never
+  readonly constructorArgs: HasConstructArgs<Enter> extends Enter ? StateConstructorArgs<Enter> : never
+  readonly enterArgs: HasConstructArgs<Enter> extends Enter ? OnEnterArgs<Enter> : never
   readonly exits?: Exits extends undefined ? undefined : Exclude<Exits, undefined>
   enterIntermediateStates?: boolean
 }
@@ -27,7 +28,9 @@ export class NestedStateMachine
   public static readonly transitions: StateTransition[]
   public static readonly states: Array<StateBehaviorBuilder<StateBehavior, any[]>>
   public static readonly enter: StateBehaviorBuilder
-  public static readonly enterArgs: any[] | undefined = undefined // StateConstructorArgs<typeof this.enter>; // sadly, this is always undefined (no static generics).
+
+  public static readonly constructorArgs?: any[] // StateConstructorArgs<typeof this>; // sadly, this is always undefined (no static generics).
+  public static readonly enterArgs?: any[] // StateConstructorArgs<typeof this.enter>; // sadly, this is always undefined (no static generics).
   public static readonly exits?: StateBehaviorBuilder[] | undefined
   public static readonly enterIntermediateStates: boolean
 
@@ -95,7 +98,7 @@ export class NestedStateMachine
   public onStateEntered (): void | Promise<void> {
     this._exitState = undefined
     this._activeStateType = this.staticRef.enter
-    this.enterState(this._activeStateType, this.bot, this.staticRef.enterArgs)
+    this.enterState(this._activeStateType, this.bot, this.staticRef.constructorArgs, this.staticRef.enterArgs)
   }
 
   public onStateExited (): void | Promise<void> {
@@ -109,12 +112,17 @@ export class NestedStateMachine
     EnterState: StateBehaviorBuilder<StateBehavior, any[]>,
     bot: Bot,
     constructorArgs: any[] = [],
-    entryArgs: any[] = []
+    entryArgs: any[] = [],
+    runtimeEnterFn?: (state: StateBehavior) => any
   ): void {
     this._activeState = new EnterState(bot, this.data, ...constructorArgs)
     this._activeState.active = true
     this.emit('stateEntered', this, EnterState, this.data)
-    void this._activeState.onStateEntered?.(...entryArgs)
+
+    let enterArgs = runtimeEnterFn?.(this._activeState) ?? entryArgs
+    if (!(enterArgs instanceof Array)) enterArgs = [enterArgs]
+
+    void this._activeState.onStateEntered?.(...enterArgs)
     this._activeState.update?.()
   }
 
@@ -145,7 +153,7 @@ export class NestedStateMachine
           transition.onTransition(this.data)
           this.exitActiveState()
           this._activeStateType = transition.childState
-          this.enterState(this._activeStateType, this.bot, transition.constructorArgs, transition.enterArgs)
+          this.enterState(this._activeStateType, this.bot, transition.constructorArgs, transition.enterArgs, transition.runtimeEnterFn)
         }
       }
       // transition.resetTrigger() // always reset to false to avoid false positives.

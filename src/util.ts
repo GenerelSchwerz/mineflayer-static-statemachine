@@ -1,6 +1,7 @@
 import type { Bot } from 'mineflayer'
 import type { StateBehavior, StateMachineData } from './stateBehavior'
 import { NestedStateMachine, NestedStateMachineOptions } from './stateMachineNested'
+import { StateTransitionInfo } from './stateTransition'
 
 export type StateBehaviorBuilder<State extends StateBehavior = StateBehavior, Args extends any[] = any[]> = NonConstructor<
   typeof StateBehavior
@@ -118,3 +119,9 @@ export type ListType<L> = L extends Array<infer R> ? R : never
 
 type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never
 export type OnEnterArgs<State extends StateBehaviorBuilder> = ArgumentTypes<InstanceType<State>['onStateEntered']>
+
+export type RuntimeEnterFn<Parents extends readonly StateBehaviorBuilder[], Child extends StateBehaviorBuilder> = (
+  state: MergeStates<Parents>
+) => StateTransitionInfo<Parents, Child>['enterArgs'] extends [first: any]
+  ? StateTransitionInfo<Parents, Child>['enterArgs'][0]
+  : StateTransitionInfo<Parents, Child>['enterArgs']

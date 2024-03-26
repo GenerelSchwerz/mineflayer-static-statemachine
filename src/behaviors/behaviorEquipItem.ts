@@ -1,5 +1,6 @@
-import type { EquipmentDestination } from 'mineflayer'
 import { StateBehavior } from '../stateBehavior'
+
+import type { EquipmentDestination } from 'mineflayer'
 
 export class BehaviorEquipItem extends StateBehavior {
   onStateEntered (itemName: string, destination: EquipmentDestination): void {
