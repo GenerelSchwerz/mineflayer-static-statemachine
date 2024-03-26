@@ -91,7 +91,7 @@ export class StateBehavior {
  * @returns
  */
 export function clone<T extends StateBehaviorBuilder> (this: T, name: string): T {
-  const ToBuild = ({[name]: class extends this.prototype.constructor {}})[name]
+  const ToBuild = ({ [name]: class extends this.prototype.constructor {} })[name]
   Object.getOwnPropertyNames(this.prototype).forEach((name) => {
     Object.defineProperty(
       ToBuild.prototype,

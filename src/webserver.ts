@@ -82,7 +82,7 @@ export class StateMachineWebserver extends EventEmitter {
   private _stateMachine?: BotStateMachine<any, any>
   private readonly _app?: Express
   private _http?: httpLoader.Server<typeof httpLoader.IncomingMessage, typeof httpLoader.ServerResponse>
-  private readonly _io?: socketLoader.Server
+  private _io?: socketLoader.Server
 
   /**
    * Creates and starts a new webserver.
@@ -161,7 +161,7 @@ export class StateMachineWebserver extends EventEmitter {
     this._http = httpLoader.createServer(this._app)
 
     // @ts-expect-error ; Why? Not sure. Probably a type-def loading issue. Either way, it's safe.
-    this.io = socketLoader(http)
+    this._io = socketLoader(this.http)
 
     this.io.on('connection', (socket: Socket) => this.onConnected(socket))
 
@@ -185,6 +185,7 @@ export class StateMachineWebserver extends EventEmitter {
 
   loadStateMachine (stateMachine: BotStateMachine<any, any>): void {
     this._stateMachine = stateMachine
+    this.lastMachine = undefined
     this.emit('switchedRoot', stateMachine)
   }
 
@@ -212,7 +213,6 @@ export class StateMachineWebserver extends EventEmitter {
 
     this.initStateMachineData(socket)
 
-    if (this.stateMachine == null) return
     this.applyStateMachineListenersToSocket(socket, this.stateMachine)
   }
 
@@ -232,25 +232,26 @@ export class StateMachineWebserver extends EventEmitter {
   /**
    * Applies listeners to a socket.
    */
-  private applyStateMachineListenersToSocket (socket: Socket, stateMachine: BotStateMachine<any, any>): void {
+  private applyStateMachineListenersToSocket (socket: Socket, stateMachine?: BotStateMachine<any, any>): void {
     const updateClient = (type: typeof NestedStateMachine, _: NestedStateMachine, state: StateBehaviorBuilder): void =>
       this.updateClient(socket, type, state)
 
     const clearClient = (type: typeof NestedStateMachine): void => this.updateClient(socket, type, undefined)
-    stateMachine.on('stateEntered', updateClient)
-    stateMachine.on('stateExited', clearClient)
+    stateMachine?.on('stateEntered', updateClient)
+    stateMachine?.on('stateExited', clearClient)
 
     socket.once('disconnect', () => {
-      stateMachine.removeListener('stateEntered', updateClient)
-      stateMachine.removeListener('stateExited', clearClient)
+      stateMachine?.removeListener('stateEntered', updateClient)
+      stateMachine?.removeListener('stateExited', clearClient)
 
       console.log(`Client ${socket.handshake.address} disconnected from webserver.`)
     })
 
     this.once('switchedRoot', (newMachine) => {
-      stateMachine.removeListener('stateEntered', updateClient)
-      stateMachine.removeListener('stateExited', clearClient)
+      stateMachine?.removeListener('stateEntered', updateClient)
+      stateMachine?.removeListener('stateExited', clearClient)
       this.applyStateMachineListenersToSocket(socket, newMachine)
+      this.initStateMachineData(socket)
 
       console.log(`Client ${socket.handshake.address} was removed from stateMachine due to switch.`)
     })

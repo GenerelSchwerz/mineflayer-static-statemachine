@@ -521,6 +521,7 @@ function onLoadMachine (packet) {
   graph.repaint = true
 }
 
+
 function loadStates (packet) {
   const centerX = graph.width / 2 - NODE_WIDTH / 2
   const centerY = graph.height / 2 - NODE_HEIGHT / 2
@@ -575,6 +576,7 @@ function loadTransitions (packet) {
 
 function loadNestedGroups (packet) {
   const buttonGroup = document.getElementById('layerButtons')
+  buttonGroup.replaceChildren()
 
   for (const n of packet.nestGroups) {
     const g = new NestedGroup(n.id, n.indent, n.enter, n.exits)

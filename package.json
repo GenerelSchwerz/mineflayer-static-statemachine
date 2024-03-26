@@ -1,6 +1,6 @@
 {
   "name": "@nxg-org/mineflayer-static-statemachine",
-  "version": "0.1.8",
+  "version": "0.2.5",
   "description": "A state machine plugin for Mineflayer to aid in designing more complex behavior trees.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

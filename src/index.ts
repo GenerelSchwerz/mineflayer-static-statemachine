@@ -10,3 +10,5 @@ export {
   getNestedMachine,
   getTransition
 } from './builders'
+
+export * as behaviors from './behaviors'
