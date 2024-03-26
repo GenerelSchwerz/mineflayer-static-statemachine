@@ -22,7 +22,8 @@ const {
   buildTransition,
   buildNestedMachine,
   StateMachineWebserver,
-  WebserverBehaviorPositions
+  WebserverBehaviorPositions,
+  behaviors
 } = require("../");
 
 // Import required behaviors.
@@ -34,7 +35,7 @@ const {
   BehaviorFindEntity : FindEntity,
   BehaviorLookAtEntity : LookAtTarget,
   BehaviorFollowEntity : FollowEntity,
-} = require("../lib/behaviors")
+} = behaviors
 
 // Have a class that requires arguments and you're too lazy to provide them every time?
 // No worries, now you can transform this class into a new one using these provided arguments!
