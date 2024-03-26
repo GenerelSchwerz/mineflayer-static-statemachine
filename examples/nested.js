@@ -1,26 +1,30 @@
-const mineflayer = require("mineflayer");
-const { BotStateMachine, StateMachineWebserver } = require("../lib");
-const {
-  BehaviorExit,
-  BehaviorFollowEntity,
-  BehaviorIdle,
-  BehaviorLookAtEntity,
-  BehaviorFindEntity,
-} = require("../lib/behaviors");
-const {
-  buildTransition,
-  buildTransitionArgs,
-  buildNestedMachineArgs,
-  buildNestedMachine
-} = require("../lib/builders");
 /**
- * Set up your bot as you normally would
+ * Set up your bot: you normally would
  */
 
 if (process.argv.length < 4 || process.argv.length > 6) {
   console.log("Usage : node lookatplayers.js <host> <port> [<name>] [<password>]");
   process.exit(1);
 }
+
+const mineflayer = require("mineflayer");
+const {
+  BotStateMachine,
+  StateMachineWebserver,
+  getTransition,
+  getNestedMachine,
+  behaviors,
+} = require("@nxg-org/mineflayer-static-statemachine");
+
+const {
+  BehaviorIdle: Idle,
+  BehaviorExit: Exit,
+  BehaviorFindEntity: FindEntity,
+  BehaviorFollowEntity: FollowEntity,
+  BehaviorLookAtEntity: LookAtTarget,
+} = behaviors;
+
+
 
 const bot = mineflayer.createBot({
   host: process.argv[2],
@@ -31,50 +35,61 @@ const bot = mineflayer.createBot({
 
 bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
-// some utils to shorten.
 const playerFilter = (e) => e.type === "player";
 const isFinished = (state) => state.isFinished();
 
 const findAndFollowTransitions = [
-  buildTransition("findToFollow", BehaviorFindEntity, BehaviorFollowEntity).setShouldTransition((state) => state.foundEntity()),
-  buildTransition("followToExit", BehaviorFollowEntity, BehaviorExit).setShouldTransition(isFinished),
+  getTransition("findToFollow", FindEntity, FollowEntity)
+    .setShouldTransition((state) => state.foundEntity())
+    .build(),
+
+  getTransition("followToExit", FollowEntity, Exit).setShouldTransition(isFinished).build(),
 ];
 
-const FollowMachine = buildNestedMachineArgs("findAndFollow", findAndFollowTransitions, BehaviorFindEntity, [playerFilter], BehaviorExit)
+// const FollowMachine = newNestedStateMachineArgs({
+//   stateName: "findAndFollow",
+//   transitions: findAndFollowTransitions,
+//   enter: FindEntity,
+//   exit: Exit,
+//   enterArgs: [playerFilter],
+// });
+
+const FollowMachine = getNestedMachine("findAndFollow", findAndFollowTransitions, FindEntity, Exit).setBuildArgs(playerFilter).build();
 
 const rootTransitions = [
-  buildTransitionArgs("idleToFind", BehaviorIdle, BehaviorFindEntity, [playerFilter]).setShouldTransition(() => true),
-  buildTransition("findToLook", BehaviorFindEntity, BehaviorLookAtEntity),
-  buildTransition("lookToIdle", BehaviorLookAtEntity, BehaviorIdle),
-  buildTransition("findToTest", BehaviorFindEntity, FollowMachine),
-  buildTransition("testToIdle", FollowMachine, BehaviorIdle).setShouldTransition(isFinished),
+  getTransition("idleToFind", Idle, FindEntity).setBuildArgs(playerFilter).build(),
+
+  getTransition("findToLook", FindEntity, LookAtTarget).build(),
+
+  getTransition("lookToIdle", LookAtTarget, Idle).build(),
+
+  getTransition("findToTest", FindEntity, FollowMachine).build(),
+
+  getTransition("testToIdle", FollowMachine, Idle).setShouldTransition(isFinished).build(),
 ];
 
-const RootMachine = buildNestedMachine("root", rootTransitions, BehaviorIdle);
+// const root = newNestedStateMachineArgs({
+//   stateName: "root",
+//   transitions: secondTransitions,
+//   enter: FindEntity,
+//   enterArgs: [playerFilter],
+// });
 
-const stateMachine = new BotStateMachine({ bot, root: RootMachine, autoStart: false });
-const webserver = new StateMachineWebserver({stateMachine});
+const root = getNestedMachine("root", rootTransitions, FindEntity, Idle).setBuildArgs(playerFilter).build();
+const stateMachine = new BotStateMachine({ bot, root, autoStart: false });
+const webserver = new StateMachineWebserver({ stateMachine });
 webserver.startServer();
 
-
-bot.on("chat", (username, input) => {
-  const split = input.split(" ");
-  if (split[0] === "find") stateMachine.root.transitions[0].trigger();
-  if (split[0] === "look") stateMachine.root.transitions[1].trigger();
-  if (split[0] === "come") stateMachine.root.transitions[3].trigger();
-  if (split[0] === "lookstop") stateMachine.root.transitions[2].trigger();
-  if (split[0] === "movestop") stateMachine.root.transitions[4].trigger();
-});
-
 // added functionality to delay starting machine until bot spawns.
-bot.on("spawn", async () => {
-  stateMachine.start();
-});
+bot.on("spawn", () => stateMachine.start());
 
-let time = performance.now()
-stateMachine.on('stateEntered', (type, nested, state) => {
-  const now = performance.now();
-  console.log(type.stateName, state.stateName, now - time);
+const handle = (input) => {
+  const split = input.split(" ");
+  if (split[0] === "find") rootTransitions[0].trigger();
+  if (split[0] === "look") rootTransitions[1].trigger();
+  if (split[0] === "come") rootTransitions[3].trigger();
+  if (split[0] === "lookstop") rootTransitions[2].trigger();
+  if (split[0] === "movestop") rootTransitions[4].trigger();
+};
 
-  time = now;
-})
+bot.on("chat", (username, message) => handle(message));
