@@ -37,8 +37,16 @@ function createStateMachine(targetName: string, distance = 16) {
       .build(),
 
     getTransition("findToMine", FindMatchingBlock, MineBlock3Range)
-      .setShouldTransition((state) => state.hasFoundBlocks())
-      .setRuntimeEnterFn((state) => state.getBestBlockPos()!)
+      .setShouldTransition((state) => {
+        const res = state.hasFoundBlocks() ;
+        console.log('findToMine', res, state.foundBlocks, state.getBestBlockPos())  
+        return res
+      })
+      .setRuntimeEnterFn((state) => {
+        const found = state.getBestBlockPos()
+        console.log('foiu', found)
+        return found!
+      })
       .setOnTransition(() => bot.chat("Found block!"))
       .build(),
 
