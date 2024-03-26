@@ -17,55 +17,68 @@ bot.loadPlugin(require('mineflayer-pathfinder').pathfinder)
 import {
     BotStateMachine,
     StateMachineWebserver,
-    buildTransition,
-    buildTransitionArgs,
-    buildNestedMachine,
-    WebserverBehaviorPositions
-} from "../../src";
+    getTransition,
+    WebserverBehaviorPositions,
+    behaviors,
+    getNestedMachine
+} from "@nxg-org/mineflayer-static-statemachine";
   
-import {
-    BehaviorIdle as Idle,
-    BehaviorFindEntity as FindEntity,
-    BehaviorFollowEntity as FollowTarget,
-    BehaviorLookAtEntity as LookAtTarget,
-} from "../../src/behaviors";
+const {
+    BehaviorIdle: Idle,
+    BehaviorFindEntity: FindEntity,
+    BehaviorFollowEntity: FollowTarget,
+    BehaviorLookAtEntity: LookAtTarget,
+} = behaviors;
   
 // to replicate the original mineflayer-statemachine exactly:
 const LookAtPlayers = LookAtTarget.clone("LookAtPlayers")
 const LookAtFollowing = LookAtTarget.clone("LookAtFollowing")
 
 const transitions = [
-  buildTransitionArgs('player says "hi"', Idle, FindEntity, [(e) => e.type === "player"]) // 1
-    .setOnTransition(() => bot.chat("hello")),
+  getTransition('player says "hi"', Idle, FindEntity) // 1
+    .setBuildArgs((e) => e.type === "player")
+    .setOnTransition(() => bot.chat("hello"))
+    .build(),
 
-  buildTransition("closestToLook", FindEntity, LookAtPlayers) // 2
-    .setShouldTransition(() => true),
+  getTransition("closestToLook", FindEntity, LookAtPlayers) // 2
+    .setShouldTransition(() => true)
+    .build(),
 
-  buildTransition('player says "bye"', LookAtPlayers, Idle) // 3
-    .setOnTransition(() => bot.chat("goodbye")),
+  getTransition('player says "bye"', LookAtPlayers, Idle) // 3
+    .setOnTransition(() => bot.chat("goodbye"))
+    .build(),
 
-  buildTransition('player says "come"', LookAtPlayers, FollowTarget) // 4
-    .setOnTransition(() => bot.chat("coming")),
+  getTransition('player says "come"', LookAtPlayers, FollowTarget) // 4
+    .setOnTransition(() => bot.chat("coming"))
+    .build(),
 
-  buildTransition('player says "stay"', FollowTarget, LookAtPlayers) // 5
-    .setOnTransition(() => bot.chat("stay")),
+  getTransition('player says "stay"', FollowTarget, LookAtPlayers) // 5
+    .setOnTransition(() => bot.chat("stay"))
+    .build(),
 
-  buildTransition('player says "bye"', FollowTarget, Idle) // 6
-    .setOnTransition(() => bot.chat("goodbye")),
+  getTransition('player says "bye"', FollowTarget, Idle) // 6
+    .setOnTransition(() => bot.chat("goodbye"))
+    .build(),
 
-  buildTransition("closeToTarget", FollowTarget, LookAtFollowing) // 7
-    .setShouldTransition((state) => state.distanceToTarget() < 3),
+  getTransition("closeToTarget", FollowTarget, LookAtFollowing) // 7
+    .setShouldTransition((state) => state.distanceToTarget() < 3)
+    .build(),
 
-  buildTransition("farFromTarget", LookAtFollowing, FollowTarget) // 8
-    .setShouldTransition((state) => state.distanceToTarget() >= 3),
+  getTransition("farFromTarget", LookAtFollowing, FollowTarget) // 8
+    .setShouldTransition((state) => state.distanceToTarget() >= 3)
+    .build(),
 
-  buildTransition('player says "bye"', LookAtFollowing, Idle) // 9
-    .setOnTransition(() => bot.chat("goodbye")),
+  getTransition('player says "bye"', LookAtFollowing, Idle) // 9
+    .setOnTransition(() => bot.chat("goodbye"))
+    .build(),
 
-  buildTransition('player says "stay"', LookAtFollowing, LookAtPlayers), // 10
+  getTransition('player says "stay"', LookAtFollowing, LookAtPlayers) // 10
+    .build(),
 ];
 
-const root = buildNestedMachine('root', transitions, Idle)
+const root =  getNestedMachine('root', transitions, Idle)
+                .build()
+                
 const stateMachine = new BotStateMachine({bot, root, autoStart: false})
 
 
