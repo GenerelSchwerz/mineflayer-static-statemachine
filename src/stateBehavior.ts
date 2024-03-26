@@ -91,7 +91,7 @@ export class StateBehavior {
  * @returns
  */
 export function clone<T extends StateBehaviorBuilder> (this: T, name: string): T {
-  const ToBuild = ({ [name]: class extends (this.prototype.constructor as any) {} })[name]
+  const ToBuild = ({ [name]: class extends this.prototype.constructor {} })[name]
   Object.getOwnPropertyNames(this.prototype).forEach((name) => {
     Object.defineProperty(
       ToBuild.prototype,
@@ -132,7 +132,7 @@ export function transform<
   // @ts-expect-error This exception catch is because this type definition is technically infinite.
 ): StateBehaviorBuilder<InstanceType<T>, OmitX<Len, StateConstructorArgs<T>>> {
   const ToBuild = ({
-    [name]: class extends (this.prototype.constructor as any) {
+    [name]: class extends this.prototype.constructor {
       constructor (bot: Bot, data: StateMachineData, ...additional: OmitX<Len, StateConstructorArgs<T>>) {
         super(bot, data, ...(defaultArgs as any), ...(additional as any))
       }

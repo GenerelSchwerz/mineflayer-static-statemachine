@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "postinstall": "ts-standard && npx tsc",
     "build": "ts-standard && npx tsc",
     "clean": "rm -rf lib",
     "test": "node --trace-warnings examples/webserver_static_layout.js",

@@ -18,7 +18,7 @@ bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
 
 // Import required structures.
-const { BotStateMachine, buildTransition, buildNestedMachineArgs } = require('@nxg-org/mineflayer-statemachine') 
+const { BotStateMachine, buildTransition, getNestedMachine, behaviors } = require('@nxg-org/mineflayer-static-statemachine') 
 
 // Import required behaviors.
 // Note: Rename behaviors by import schema here.
@@ -26,7 +26,7 @@ const {
     BehaviorFindEntity: FindEntity,
     BehaviorFollowEntity: FollowTarget,
     BehaviorLookAtEntity: LookAtTarget
-} = require('@nxg-org/mineflayer-statemachine/lib/behaviors')
+} = behaviors
 
 // Util function to find the nearest player.
 const nearestPlayer = (e) => e.type === 'player'
@@ -52,7 +52,7 @@ const transitions = [
 // Now we just wrap our transition list in a nested state machine layer. We want the bot
 // to start on the getClosestPlayer state, so we'll specify that here.
 // We can specify entry arguments to our entry class here as well.
-const root = buildNestedMachineArgs('rootLayer', transitions, FindEntity, [nearestPlayer])
+const root = getNestedMachine('rootLayer', transitions, FindEntity, [nearestPlayer])
 
 // We can start our state machine simply by creating a new instance.
 // We can delay the start of our machine by using autoStart: false
