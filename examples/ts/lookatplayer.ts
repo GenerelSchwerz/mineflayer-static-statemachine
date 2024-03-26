@@ -34,6 +34,7 @@ const data = {};
 
 const BehaviorLook = BehaviorLookAtEntity.clone("LookAt");
 const transitions = [
+    
   // This transitions from the idleState to the getClosestPlayer state
   // when someone says hi in chat.
   getTransition("idleToClosest", BehaviorIdle, BehaviorFindEntity)

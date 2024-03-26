@@ -1,4 +1,4 @@
-const mineflayer = require('mineflayer')
+import mineflayer from 'mineflayer'
 
 if (process.argv.length < 3 || process.argv.length > 6) {
   console.log('Usage : node lookatplayers.js <host> <port> [<name>] [<password>]')
@@ -78,7 +78,7 @@ const transitions = [
 
 const root =  getNestedMachine('root', transitions, Idle)
                 .build()
-                
+
 const stateMachine = new BotStateMachine({bot, root, autoStart: false})
 
 
