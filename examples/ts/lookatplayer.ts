@@ -1,12 +1,12 @@
 if (process.argv.length < 4 || process.argv.length > 6) {
-  console.log("Usage : node lookatplayers.js <host> <port> [<name>] [<password>]");
+  console.log("Usage : ts-node lookatplayers.ts <host> <port> [<name>] [<password>]");
   process.exit(1);
 }
 
 /**
  * Set up your bot as you normally would
  */
-const mineflayer = require("mineflayer");
+import mineflayer from "mineflayer";
 
 const bot = mineflayer.createBot({
   host: process.argv[2],
@@ -16,13 +16,13 @@ const bot = mineflayer.createBot({
 });
 
 // Imports
-const {
+import {
   BotStateMachine,
   StateMachineWebserver,
   getTransition,
   getNestedMachine,
   behaviors,
-} = require("@nxg-org/mineflayer-static-statemachine");
+} from "@nxg-org/mineflayer-static-statemachine";
 
 const { BehaviorIdle, BehaviorFindEntity, BehaviorLookAtEntity } = behaviors;
 
@@ -37,7 +37,7 @@ const transitions = [
   // This transitions from the idleState to the getClosestPlayer state
   // when someone says hi in chat.
   getTransition("idleToClosest", BehaviorIdle, BehaviorFindEntity)
-    .setEntryArgs(nearestPlayer)
+    .setBuildArgs(nearestPlayer)
     .setOnTransition(() => bot.chat("hello"))
     .build(),
 
@@ -61,7 +61,8 @@ const root = getNestedMachine("Root", transitions, BehaviorIdle).build();
 
 // Let's add these settings to the state machine and start it!
 const stateMachine = new BotStateMachine({ bot, root, data, autoStart: false });
-const webserver = new StateMachineWebserver({stateMachine});
+const webserver = new StateMachineWebserver({ stateMachine });
+
 webserver.startServer();
 
 bot.once("spawn", () => {

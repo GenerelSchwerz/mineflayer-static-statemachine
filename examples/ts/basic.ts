@@ -19,16 +19,17 @@ bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 import {
   BotStateMachine,
   getTransition,
-  getNestedMachine
-} from "@nxg-org/mineflayer-statemachine";
+  getNestedMachine,
+  behaviors
+} from "@nxg-org/mineflayer-static-statemachine";
 
 // Import required behaviors.
-import {
-  BehaviorExit as Exit,
-  BehaviorFindEntity as FindEntity,
-  BehaviorLookAtEntity as LookAtTarget,
-  BehaviorFollowEntity as FollowEntity,
-} from "@nxg-org/mineflayer-statemachine/lib/behaviors";
+const {
+  BehaviorExit: Exit,
+  BehaviorFindEntity: FindEntity,
+  BehaviorLookAtEntity: LookAtTarget,
+  BehaviorFollowEntity: FollowEntity,
+} = behaviors;
 
 
 const transitions = [
