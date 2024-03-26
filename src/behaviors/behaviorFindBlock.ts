@@ -20,6 +20,11 @@ export class BehaviorFindBlock extends StateBehavior {
     return this._foundBlocks.length > 0
   }
 
+  getBestBlockPos (): Vec3 | null {
+    if (this._foundBlocks.length === 0) return null
+    return this._foundBlocks[0]
+  }
+
   onStateEntered (): void {
     this._foundBlocks = this.findBlocks()
   }

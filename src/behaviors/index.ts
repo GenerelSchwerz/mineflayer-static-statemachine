@@ -5,5 +5,6 @@ export * from './behaviorFindEntity'
 
 export * from './behaviorFindBlock'
 export * from './behaviorMineBlock'
+export * from './behaviorGoto'
 export * from './abstractBehaviorInventory'
 export * from './behaviorEquipItem'

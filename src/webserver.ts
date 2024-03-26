@@ -189,6 +189,12 @@ export class StateMachineWebserver extends EventEmitter {
     this.emit('switchedRoot', stateMachine)
   }
 
+  unloadStateMachine (): void {
+    this._stateMachine = undefined
+    this.lastMachine = undefined
+    this.emit('switchedRoot', undefined)
+  }
+
   /**
    * Called when the web server is started.
    */

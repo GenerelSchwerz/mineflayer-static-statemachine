@@ -122,6 +122,8 @@ export class NestedStateMachine
     let enterArgs = runtimeEnterFn?.(this._activeState) ?? entryArgs
     if (!(enterArgs instanceof Array)) enterArgs = [enterArgs]
 
+    console.log('enterArgs', enterArgs, EnterState.name)
+
     void this._activeState.onStateEntered?.(...enterArgs)
     this._activeState.update?.()
   }
