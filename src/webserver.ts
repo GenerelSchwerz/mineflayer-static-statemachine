@@ -73,7 +73,7 @@ export class WebserverBehaviorPositions {
 export class StateMachineWebserver extends EventEmitter {
   private serverRunning: boolean = false
 
-  readonly presetPositions?: WebserverBehaviorPositions
+  presetPositions?: WebserverBehaviorPositions
   readonly port: number
 
   private lastMachine: typeof NestedStateMachine | undefined
@@ -183,14 +183,16 @@ export class StateMachineWebserver extends EventEmitter {
     setImmediate(this.onStopped.bind(this))
   }
 
-  loadStateMachine (stateMachine: BotStateMachine<any, any>): void {
+  loadStateMachine (stateMachine: BotStateMachine<any, any>, presetPositions?: WebserverBehaviorPositions): void {
     this._stateMachine = stateMachine
+    this.presetPositions = presetPositions // update preset positions, including deleting if not specified.
     this.lastMachine = undefined
     this.emit('switchedRoot', stateMachine)
   }
 
   unloadStateMachine (): void {
     this._stateMachine = undefined
+    this.presetPositions = undefined
     this.lastMachine = undefined
     this.emit('switchedRoot', undefined)
   }

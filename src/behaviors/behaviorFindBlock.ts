@@ -30,11 +30,11 @@ export class BehaviorFindBlock extends StateBehavior {
   getBestBlockPos (): Vec3 | null {
     if (this._foundBlocks.length === 0) return null
     const eyePos = this.bot.entity.position.offset(0, this.bot.entity.height, 0)
-    
-    let bestBlock = null;
 
-    let bestDistance = Infinity;
-    
+    let bestBlock = null
+
+    let bestDistance = Infinity
+
     for (const block of this._foundBlocks) {
       const distance = this.aabbDistance(eyePos, block, block.offset(1, 1, 1))
       if (distance < bestDistance) {
@@ -50,9 +50,8 @@ export class BehaviorFindBlock extends StateBehavior {
     this._foundBlocks = this.findBlocks()
   }
 
-  onStateExited(): void {
+  onStateExited (): void {
     this._foundBlocks = []
-  
   }
 
   update (): void {
@@ -62,6 +61,4 @@ export class BehaviorFindBlock extends StateBehavior {
   findBlocks (): Vec3[] {
     return this.bot.findBlocks(this._opts)
   }
-
-
 }
