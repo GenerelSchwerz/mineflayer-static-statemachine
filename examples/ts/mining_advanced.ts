@@ -82,10 +82,9 @@ webserver.startServer();
 
 bot.once("spawn", async () => {
   await bot.waitForChunksToLoad();
-  bot.chat('rocky1928')
 });
 
-bot.on('end', console.log)
+bot.on('end', console.info)
 
 bot.on("chat", (username, message) => {
   const [cmd, ...args] = message.split(" ");
