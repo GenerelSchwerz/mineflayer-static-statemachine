@@ -23,7 +23,7 @@ const { BehaviorExit: Exit, BehaviorFindBlock: FindBlock, BehaviorMineBlock: Min
 
 let rootMachine: BotStateMachine<any, any>;
 
-function createStateMachine(targetName: string, distance = 16) {
+function createStateMachine(targetName: string, distance = 16, stopAfterOne = false) {
   const blockId = bot.registry.blocksByName[targetName].id;
 
   const MineBlock3Range = MineBlock.transform("MineBlock3Range", [4]);
@@ -54,10 +54,17 @@ function createStateMachine(targetName: string, distance = 16) {
       .setOnTransition(() => bot.chat("got to block!"))
       .build(),
 
-    getTransition("mineToFind", MineBlock3Range, FindMatchingBlock)
-      .setShouldTransition((state) => state.isFinished())
-      .setOnTransition(() => bot.chat("Finished mining, finding new block!"))
-      .build(),
+    stopAfterOne ?
+      getTransition("mineToExit", MineBlock3Range, Exit)
+        .setShouldTransition((state) => state.isFinished())
+        .setOnTransition(() => bot.chat("Finished mining, exiting..."))
+        .build()
+    :
+      getTransition("mineToFind", MineBlock3Range, FindMatchingBlock)
+        .setShouldTransition((state) => state.isFinished())
+        .setOnTransition(() => bot.chat("Finished mining, finding new block!"))
+        .build()
+     
   ];
 
   // Now we just wrap our transition list in a nested state machine layer. We want the bot
@@ -76,13 +83,6 @@ webserver.startServer();
 bot.once("spawn", async () => {
   await bot.waitForChunksToLoad();
   bot.chat('rocky1928')
-
-  // await bot.waitForTicks(20)
-  // bot.chat('rocky1928')
-  // const targetName = "dirt";
-  // rootMachine = createStateMachine(targetName);
-  // webserver.loadStateMachine(rootMachine);
-  // rootMachine.start();
 });
 
 bot.on('end', console.log)
@@ -93,7 +93,14 @@ bot.on("chat", (username, message) => {
   switch (cmd) {
     case "mine":
       if (rootMachine != null) rootMachine.stop();
-      rootMachine = createStateMachine(args[0]);
+      rootMachine = createStateMachine(args[0], 16, false);
+      webserver.loadStateMachine(rootMachine);
+      rootMachine.start();
+      break;
+
+    case "mineone":
+      if (rootMachine != null) rootMachine.stop();
+      rootMachine = createStateMachine(args[0], 16, true);
       webserver.loadStateMachine(rootMachine);
       rootMachine.start();
       break;
