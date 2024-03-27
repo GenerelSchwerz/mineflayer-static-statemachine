@@ -31,10 +31,10 @@ export class BehaviorFindBlock extends StateBehavior {
     if (this._foundBlocks.length === 0) return null
     const eyePos = this.bot.entity.position.offset(0, this.bot.entity.height, 0)
     
-    let bestBlock = this._foundBlocks[0]
+    let bestBlock = null;
 
-    let bestDistance = this.aabbDistance(eyePos, bestBlock, bestBlock.offset(1, 1, 1))
-
+    let bestDistance = Infinity;
+    
     for (const block of this._foundBlocks) {
       const distance = this.aabbDistance(eyePos, block, block.offset(1, 1, 1))
       if (distance < bestDistance) {
