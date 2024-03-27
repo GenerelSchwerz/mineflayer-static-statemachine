@@ -76,5 +76,6 @@ export class BehaviorGoto extends StateBehavior {
 
   private stopMoving (): void {
     this.bot.pathfinder.stop()
+    this._goalVec = null
   }
 }

@@ -26,9 +26,9 @@ let rootMachine: BotStateMachine<any, any>;
 function createStateMachine(targetName: string, distance = 16) {
   const blockId = bot.registry.blocksByName[targetName].id;
 
-  const MineBlock3Range = MineBlock.transform("MineBlock3Range", [3]);
+  const MineBlock3Range = MineBlock.transform("MineBlock3Range", [4]);
   const FindMatchingBlock = FindBlock.transform(`FindBlock: ${targetName}`, [{ matching: blockId, distance }]);
-  const Goto2Blocks = Goto.transform("Goto2Blocks", [{ range: 2 }]);
+  const Goto2Blocks = Goto.transform("Goto2Blocks", [{ range: 1 }]);
 
   const transitions = [
     getTransition("findToExit", FindMatchingBlock, Exit)
@@ -37,16 +37,8 @@ function createStateMachine(targetName: string, distance = 16) {
       .build(),
 
     getTransition("findToMine", FindMatchingBlock, MineBlock3Range)
-      .setShouldTransition((state) => {
-        const res = state.hasFoundBlocks() ;
-        console.log('findToMine', res, state.foundBlocks, state.getBestBlockPos())  
-        return res
-      })
-      .setRuntimeEnterFn((state) => {
-        const found = state.getBestBlockPos()
-        console.log('foiu', found)
-        return found!
-      })
+      .setShouldTransition((state) => state.hasFoundBlocks())
+      .setRuntimeEnterFn((state) => state.getBestBlockPos()!)
       .setOnTransition(() => bot.chat("Found block!"))
       .build(),
 
@@ -59,12 +51,12 @@ function createStateMachine(targetName: string, distance = 16) {
     getTransition("gotoToMine", Goto2Blocks, MineBlock3Range)
       .setShouldTransition((state) => state.isFinished())
       .setRuntimeEnterFn((state) => state.goalVec!)
-      .setOnTransition(() => bot.chat("Finished mining!"))
+      .setOnTransition(() => bot.chat("got to block!"))
       .build(),
 
     getTransition("mineToFind", MineBlock3Range, FindMatchingBlock)
       .setShouldTransition((state) => state.isFinished())
-      .setOnTransition(() => bot.chat("Finished mining!"))
+      .setOnTransition(() => bot.chat("Finished mining, finding new block!"))
       .build(),
   ];
 
@@ -83,30 +75,36 @@ webserver.startServer();
 
 bot.once("spawn", async () => {
   await bot.waitForChunksToLoad();
-  const targetName = "dirt";
-  rootMachine = createStateMachine(targetName);
-  webserver.loadStateMachine(rootMachine);
-  rootMachine.start();
+  bot.chat('rocky1928')
+
+  // await bot.waitForTicks(20)
+  // bot.chat('rocky1928')
+  // const targetName = "dirt";
+  // rootMachine = createStateMachine(targetName);
+  // webserver.loadStateMachine(rootMachine);
+  // rootMachine.start();
 });
 
-// bot.on("chat", (username, message) => {
-//   const [cmd, ...args] = message.split(" ");
+bot.on('end', console.log)
 
-//   switch (cmd) {
-//     case "mine":
-//       if (rootMachine != null) rootMachine.stop();
-//       rootMachine = createStateMachine(bot.registry.blocksByName[args[0]].id);
-//       webserver.loadStateMachine(rootMachine);
-//       rootMachine.start();
-//       break;
+bot.on("chat", (username, message) => {
+  const [cmd, ...args] = message.split(" ");
 
-//     case "stop":
-//       if (!rootMachine) {
-//         bot.chat("Machine not started!");
-//         return;
-//       }
+  switch (cmd) {
+    case "mine":
+      if (rootMachine != null) rootMachine.stop();
+      rootMachine = createStateMachine(args[0]);
+      webserver.loadStateMachine(rootMachine);
+      rootMachine.start();
+      break;
 
-//       rootMachine.stop();
-//       break;
-//   }
-// });
+    case "stop":
+      if (!rootMachine) {
+        bot.chat("Machine not started!");
+        return;
+      }
+
+      rootMachine.stop();
+      break;
+  }
+});

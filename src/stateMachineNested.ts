@@ -108,23 +108,25 @@ export class NestedStateMachine
     this._activeState = undefined
   }
 
+  private getEntryArgs(entryArgs: any[] = [], runtimeEnterFn?: (state: StateBehavior) => any): any[] {
+    let enterArgs = this._activeState != null ? runtimeEnterFn?.(this._activeState) ?? entryArgs : entryArgs
+    if (!(enterArgs instanceof Array)) enterArgs = [enterArgs]
+
+    return enterArgs;
+  }
+
   protected enterState (
     EnterState: StateBehaviorBuilder<StateBehavior, any[]>,
     bot: Bot,
     constructorArgs: any[] = [],
-    entryArgs: any[] = [],
-    runtimeEnterFn?: (state: StateBehavior) => any
+    entryArgs: any[] = []
   ): void {
+
     this._activeState = new EnterState(bot, this.data, ...constructorArgs)
     this._activeState.active = true
     this.emit('stateEntered', this, EnterState, this.data)
 
-    let enterArgs = runtimeEnterFn?.(this._activeState) ?? entryArgs
-    if (!(enterArgs instanceof Array)) enterArgs = [enterArgs]
-
-    console.log('enterArgs', enterArgs, EnterState.name, runtimeEnterFn?.(this._activeState))
-
-    void this._activeState.onStateEntered?.(...enterArgs)
+    void this._activeState.onStateEntered?.(...entryArgs)
     this._activeState.update?.()
   }
 
@@ -142,6 +144,8 @@ export class NestedStateMachine
     if (this._activeState == null) return
     this._activeState.update?.()
     const transitions = this.staticRef.transitions
+
+    let transitionCount = 0;
     for (let i = 0; i < transitions.length; i++) {
       if (i === 0 && this.isFinished()) return
       const transition = transitions[i]
@@ -149,13 +153,20 @@ export class NestedStateMachine
         (this._activeStateType != null && transition.parentStates.includes(this._activeStateType)) ||
         (transition.parentStates.includes(BehaviorWildcard) && this._activeStateType !== transition.childState)
       ) {
-        if (transition.isTriggered() || transition.shouldTransition(this._activeState as any)) {
+        if (transition.isTriggered() || transition.shouldTransition(this._activeState)) {
+
+          if (++transitionCount >= 128) { // max loops per tick allowed.
+            throw new Error(`Transition loop detected, have looped ${transitionCount} times.\nLast transition parents: ${transition.parentStates.map((p) => p.stateName).join(', ')}\nLast transition child: ${transition.childState.stateName}`);
+          }
+
           transition.resetTrigger()
           i = -1
-          transition.onTransition(this.data)
+
+          transition.onTransition(this.data, this._activeState)
+          const entryArgs = this.getEntryArgs(transition.enterArgs, transition.runtimeEnterFn)
           this.exitActiveState()
           this._activeStateType = transition.childState
-          this.enterState(this._activeStateType, this.bot, transition.constructorArgs, transition.enterArgs, transition.runtimeEnterFn)
+          this.enterState(this._activeStateType, this.bot, transition.constructorArgs, entryArgs)
         }
       }
       // transition.resetTrigger() // always reset to false to avoid false positives.

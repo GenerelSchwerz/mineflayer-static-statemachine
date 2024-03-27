@@ -75,7 +75,7 @@ export class BotStateMachine<
   }
 
   public stop (): void {
-    if (!this.root.active) throw Error('Root is already stopped.')
+    if (!this.root.active) return//throw Error('Root is already stopped.')
     if (!this.autoUpdate) throw Error('State machines are manually updated, stopping does not guarentee exiting.')
     this.root.active = false
     this._activeMachine = undefined

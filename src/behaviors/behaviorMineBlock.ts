@@ -28,7 +28,6 @@ export class BehaviorMineBlock extends StateBehavior {
   }
 
   async onStateEntered (blockPos: Vec3): Promise<void> {
-    console.trace(blockPos)
     this._targetVec = blockPos
     this._targetBlock = this.bot.blockAt(blockPos)
     if (this._targetBlock == null) {
@@ -55,5 +54,11 @@ export class BehaviorMineBlock extends StateBehavior {
     const eyePos = this.bot.entity.position.offset(0, this.bot.entity.height, 0)
 
     return this.aabbDistance(eyePos, targetMinVec, targetMaxVec) < this.range
+  }
+
+  onStateExited(): void {
+    this.isCompleted = false
+    this._targetVec = null
+    this._targetBlock = null
   }
 }
