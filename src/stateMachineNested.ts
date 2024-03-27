@@ -108,11 +108,11 @@ export class NestedStateMachine
     this._activeState = undefined
   }
 
-  private getEntryArgs(entryArgs: any[] = [], runtimeEnterFn?: (state: StateBehavior) => any): any[] {
+  private getEntryArgs (entryArgs: any[] = [], runtimeEnterFn?: (state: StateBehavior) => any): any[] {
     let enterArgs = this._activeState != null ? runtimeEnterFn?.(this._activeState) ?? entryArgs : entryArgs
     if (!(enterArgs instanceof Array)) enterArgs = [enterArgs]
 
-    return enterArgs;
+    return enterArgs
   }
 
   protected enterState (
@@ -121,7 +121,6 @@ export class NestedStateMachine
     constructorArgs: any[] = [],
     entryArgs: any[] = []
   ): void {
-
     this._activeState = new EnterState(bot, this.data, ...constructorArgs)
     this._activeState.active = true
     this.emit('stateEntered', this, EnterState, this.data)
@@ -145,7 +144,7 @@ export class NestedStateMachine
     this._activeState.update?.()
     const transitions = this.staticRef.transitions
 
-    let transitionCount = 0;
+    let transitionCount = 0
     for (let i = 0; i < transitions.length; i++) {
       if (i === 0 && this.isFinished()) return
       const transition = transitions[i]
@@ -154,9 +153,8 @@ export class NestedStateMachine
         (transition.parentStates.includes(BehaviorWildcard) && this._activeStateType !== transition.childState)
       ) {
         if (transition.isTriggered() || transition.shouldTransition(this._activeState)) {
-
           if (++transitionCount >= 128) { // max loops per tick allowed.
-            throw new Error(`Transition loop detected, have looped ${transitionCount} times.\nLast transition parents: ${transition.parentStates.map((p) => p.stateName).join(', ')}\nLast transition child: ${transition.childState.stateName}`);
+            throw new Error(`Transition loop detected, have looped ${transitionCount} times.\nLast transition parents: ${transition.parentStates.map((p) => p.stateName).join(', ')}\nLast transition child: ${transition.childState.stateName}`)
           }
 
           transition.resetTrigger()

@@ -56,7 +56,7 @@ export class BehaviorMineBlock extends StateBehavior {
     return this.aabbDistance(eyePos, targetMinVec, targetMaxVec) < this.range
   }
 
-  onStateExited(): void {
+  onStateExited (): void {
     this.isCompleted = false
     this._targetVec = null
     this._targetBlock = null
