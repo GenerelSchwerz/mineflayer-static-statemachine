@@ -16,7 +16,7 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(require("mineflayer-pathfinder").pathfinder);
 
 // Import required structures.
-import { BotStateMachine, getTransition, getNestedMachine, StateMachineWebserver, behaviors } from "@nxg-org/mineflayer-static-statemachine";
+import { BotStateMachine, getTransition, getNestedMachine, StateMachineWebserver, behaviors } from "../../src";
 
 // Import required behaviors.
 const { BehaviorExit: Exit, BehaviorFindBlock: FindBlock, BehaviorMineBlock: MineBlock, BehaviorGoto: Goto } = behaviors;
