@@ -1,20 +1,19 @@
-<h1 align="center">Mineflayer-StateMachine</h1>
+<h1 align="center">Mineflayer-Static-Statemachine</h1>
 <p align="center"><i>This project is a plugin designed for <a href="https://github.com/PrismarineJS/mineflayer">Mineflayer</a> that adds a high level API for writing state machines. As bot AI code can grow very quickly, writing this code in a finite state machine manner can help keep the code base manageable and improve quality of bot behavior trees.</i></p>
 
 <p align="center">
-  <img src="https://github.com/PrismarineJS/mineflayer-statemachine/workflows/Build/badge.svg" />
-  <img src="https://img.shields.io/npm/v/mineflayer-statemachine" />
-  <img src="https://img.shields.io/github/repo-size/PrismarineJS/mineflayer-statemachine" />
-  <img src="https://img.shields.io/npm/dm/mineflayer-statemachine" />
-  <img src="https://img.shields.io/github/contributors/PrismarineJS/mineflayer-statemachine" />
-  <img src="https://img.shields.io/github/license/PrismarineJS/mineflayer-statemachine" />
+  <img src="https://img.shields.io/npm/v/@nxg-org/mineflayer-static-statemachine" />
+  <img src="https://img.shields.io/github/repo-size/GenerelSchwerz/mineflayer-static-statemachine" />
+  <img src="https://img.shields.io/npm/dm/@nxg-org/mineflayer-static-statemachine" />
+  <img src="https://img.shields.io/github/contributors/GenerelSchwerz/mineflayer-static-statemachine" />
+  <img src="https://img.shields.io/github/license/GenerelSchwerz/mineflayer-static-statemachine" />
 </p>
 
 ---
 
 ### What is it?
 
-Mineflayer-StateMachine is a plugin for Mineflayer. It aims to add a flexible and customizable state machine API on top of Mineflayer to make it easier to write and scale bots.
+Mineflayer-Static-Statemachine is a plugin for Mineflayer. It aims to add a flexible and customizable state machine API on top of Mineflayer to make it easier to write and scale bots.
 
 Writing a complex bot AI can be difficult, especially if it has to be convincing. Finite state machines make this process much eaiser by offloading the fine details into isolated modules which only serve a single function or behavior. These modules can then be connected together in a top level component to customize how these seperate modules should interact and pass around control of the bot and state machine parameters.
 
@@ -30,7 +29,7 @@ Writing a complex bot AI can be difficult, especially if it has to be convincing
 
 This plugin is built using Node and can be installed using:
 ```bash
-npm install --save mineflayer-statemachine
+npm install --save @nxg-org/mineflayer-static-statemachine
 ```
 
 This plugin relies on [mineflayer-pathfinder](https://github.com/Karang/mineflayer-pathfinder) for movement related behaviors. If these behaviors are used, this plugin must be loaded before starting the state machine object.
