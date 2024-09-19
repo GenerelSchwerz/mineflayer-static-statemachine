@@ -607,7 +607,7 @@ function getTransitionGroup (groups, parent, child) {
 
   const group = new TransitionGroup(parent, child)
   groups.push(group)
-
+  
   return group
 }
 

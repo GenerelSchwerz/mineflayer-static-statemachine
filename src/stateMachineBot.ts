@@ -9,6 +9,7 @@ import { isNestedStateMachine, SpecifcNestedStateMachine, StateBehaviorBuilder }
 export interface BotStateMachineEvents {
   stateEntered: (type: typeof NestedStateMachine, cls: NestedStateMachine, newState: StateBehaviorBuilder) => void
   stateExited: (type: typeof NestedStateMachine, cls: NestedStateMachine, oldState: StateBehaviorBuilder) => void
+  beforeUpdate: (root: NestedStateMachine) => void
 }
 
 export interface BotStateMachineOptions<Enter extends StateBehaviorBuilder, Exits extends StateBehaviorBuilder[]> {
@@ -151,6 +152,7 @@ export class BotStateMachine<
    * Called each tick to update the root state machine.
    */
   public update = (): void => {
+    this.emit("beforeUpdate", this.root)
     this.root.update()
   }
 
