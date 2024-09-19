@@ -136,25 +136,23 @@ export class BotStateMachine<
 
   /**
    * trigger transitions of top-level root machine by name
-   * 
+   *
    * Note: only provide transitions if the machine is currently running.
    */
-    public triggerTransition (name: string): boolean {
-      if (this._activeMachine == null) return false
-      const t = this._activeMachine.transitions.find((transition) => transition.name === name)
+  public triggerTransition (name: string): boolean {
+    if (this._activeMachine == null) return false
+    const t = this._activeMachine.transitions.find((transition) => transition.name === name)
 
-      if (t == null) return false
-      t.trigger();
-      return true;
-    }
+    if (t == null) return false
+    t.trigger()
+    return true
+  }
 
   /**
    * Called each tick to update the root state machine.
    */
   public update = (): void => {
-    this.emit("beforeUpdate", this.root)
+    this.emit('beforeUpdate', this.root)
     this.root.update()
   }
-
-
 }
