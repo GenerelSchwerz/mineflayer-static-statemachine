@@ -179,7 +179,7 @@ export class StateMachineWebserver extends EventEmitter {
     this.serverRunning = false
 
     // also closes the http server.
-    this.io.close()
+    void this.io.close()
     setImmediate(this.onStopped.bind(this))
   }
 

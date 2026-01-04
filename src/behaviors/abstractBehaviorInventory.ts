@@ -1,6 +1,7 @@
 import { StateBehavior } from '../stateBehavior'
 import type { EquipmentDestination } from 'mineflayer'
 import type { Item } from 'prismarine-item'
+import type { Food } from 'minecraft-data'
 
 /**
  * A collection of useful functions for inventory-based behaviors.
@@ -291,7 +292,7 @@ export abstract class AbstractBehaviorInventory extends StateBehavior {
      * @returns True if the item is food. False otherwise.
      */
   isFood (item: Item): boolean {
-    if (!(this.bot.registry.foodsArray.find((itemToCheck: Item) => itemToCheck.name === item.name) == null)) {
+    if (!(this.bot.registry.foodsArray.find((itemToCheck: Food) => itemToCheck.name === item.name) == null)) {
       return true
     } else {
       return false

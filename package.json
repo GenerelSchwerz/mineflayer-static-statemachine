@@ -28,9 +28,11 @@
     "url": "https://github.com/GenerelSchwerz/mineflayer-static-statemachine/issues"
   },
   "homepage": "https://github.com/GenerelSchwerz/mineflayer-static-statemachine#readme",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "express": "^4.17.2",
-    "node": "^19.1.0",
     "socket.io": "^4.6.0",
     "strict-event-emitter-types": "^2.0.0"
   },
