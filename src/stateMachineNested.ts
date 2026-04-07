@@ -160,7 +160,7 @@ export class NestedStateMachine
           transition.resetTrigger()
           i = -1
 
-          transition.onTransition(this.data, this._activeState)
+          transition.onTransition(this._activeState, this.data)
           const entryArgs = this.getEntryArgs(transition.enterArgs, transition.runtimeEnterFn)
           this.exitActiveState()
           this._activeStateType = transition.childState

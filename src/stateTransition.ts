@@ -14,7 +14,7 @@ export interface StateTransitionInfo<
   enterArgs: OnEnterArgs<Child> extends [] ? never : OnEnterArgs<Child>
   name?: string
   shouldTransition?: (state: MergeStates<Parents>) => boolean
-  onTransition?: (data: StateMachineData, state: MergeStates<Parents>) => void
+  onTransition?: (state: MergeStates<Parents>, data: StateMachineData) => void
   runtimeEnterFn?: RuntimeEnterFn<Parents, Child>
 }
 
@@ -32,7 +32,7 @@ export class StateTransition<
   public readonly enterArgs: StateTransitionInfo<Parents, Child>['enterArgs']
   private triggerState: boolean = false
   shouldTransition: (state: MergeStates<Parents>) => boolean
-  onTransition: (data: StateMachineData, state: MergeStates<Parents>) => void
+  onTransition: (state: MergeStates<Parents>, data: StateMachineData) => void
   runtimeEnterFn?: RuntimeEnterFn<Parents, Child>
   name?: string
 
@@ -42,8 +42,8 @@ export class StateTransition<
     name,
     constructorArgs,
     enterArgs,
-    shouldTransition = (data) => false,
-    onTransition = (data, state) => {},
+    shouldTransition = (state) => false,
+    onTransition = (state, data) => {},
     runtimeEnterFn
   }: StateTransitionInfo<Parents, Child>) {
     this.parentStates = parents
@@ -73,7 +73,7 @@ export class StateTransition<
     return this
   }
 
-  setOnTransition (onTrans: (data: StateMachineData) => void): this {
+  setOnTransition (onTrans: (state: MergeStates<Parents>, data: StateMachineData) => void): this {
     this.onTransition = onTrans
     return this
   }
